@@ -63,7 +63,7 @@
     /* ===== 问卷封面卡片（覆盖在文章空白处） ===== */
     .cover {
       position: absolute;
-      top: 1413.5rem;
+      top: 1373.5rem;
       left: 21rem;
       width: 348rem;
       height: 460rem;
@@ -227,6 +227,413 @@
       letter-spacing: 0.5rem;
       color: #b59d70;
     }
+
+    /* ===== 阶段切换淡入淡出 ===== */
+    .cover {
+      transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+      will-change: opacity;
+    }
+
+    .cover.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* ===== 问卷轮播容器（与「问卷封面」中心对齐） =====
+       封面: top 1413.5rem, height 460 → 中心 y = 1643.5；卡片高 452.07 → top = 1417.46 */
+    .carousel {
+      position: absolute;
+      left: 0;
+      top: 1377.46rem;
+      width: 390rem;
+      height: 452.07rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+      overflow: visible;
+      touch-action: pan-y;
+    }
+
+    .carousel.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+    }
+
+    /* ===== 单张问卷卡片 ===== */
+    .q-card {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 303.67rem;
+      height: 452.07rem;
+      border-radius: 11.793rem;
+      background: #c6f6d6;
+      transform-origin: center center;
+      transform: translate3d(-50%, 0, 0) scale(1);
+      opacity: 1;
+      will-change: transform, opacity;
+      -webkit-transform: translate3d(-50%, 0, 0) scale(1);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    .q-inner {
+      position: absolute;
+      left: 17.84rem;
+      top: 17.03rem;
+      width: 268rem;
+      height: 418rem;
+      background: #ffffff;
+      border-radius: 5rem;
+    }
+
+    .q-num {
+      position: absolute;
+      left: 38rem;
+      top: 27rem;
+      font-size: 43.429rem;
+      line-height: 1;
+      color: #3fdd80;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: 1rem;
+      font-family: "Xiangjiao-kuanmaoshualinggan", "HYQiHei 80S", "PingFang SC", sans-serif;
+    }
+
+    .q-progress {
+      position: absolute;
+      left: 201rem;
+      top: 47rem;
+      font-size: 13rem;
+      line-height: 20rem;
+      color: rgba(0, 0, 0, 0.3);
+      font-weight: 500;
+    }
+    /* 选择选项后，进度中的当前题号被点亮 */
+    .q-cur { color: inherit; transition: color 0.2s ease; }
+    .q-card.is-answered .q-cur { color: #07c160; }
+
+    /* 未选择即点「下一题」时的轻提示 */
+    .q-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 86rem;
+      transform: translate(-50%, 6rem);
+      max-width: 240rem;
+      padding: 8rem 16rem;
+      border-radius: 999rem;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 12rem;
+      line-height: 1.4;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .q-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .q-text {
+      position: absolute;
+      left: 38rem;
+      top: 83rem;
+      width: 228rem;
+      font-size: 18rem;
+      line-height: 1.46;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 700;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+    }
+
+    .q-options {
+      position: absolute;
+      inset: 0;
+      list-style: none;
+    }
+
+    .q-option {
+      position: absolute;
+      left: 41rem;
+      width: 225rem;
+      cursor: pointer;
+    }
+
+    .q-option:nth-child(1) { top: 186rem; }
+    .q-option:nth-child(2) { top: 251rem; }
+    .q-option:nth-child(3) { top: 316rem; }
+
+    .q-box {
+      position: absolute;
+      left: 0;
+      top: 4rem;
+      width: 16rem;
+      height: 16rem;
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 2rem;
+      background: #ffffff;
+      transition: border-color 0.18s ease, opacity 0.18s ease;
+    }
+
+    .q-check {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16rem;
+      height: 19.5rem;
+      opacity: 0;
+      transform: scale(0.4);
+      transform-origin: 50% 60%;
+      transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .q-label {
+      position: absolute;
+      left: 23rem;
+      top: 0;
+      width: 202rem;
+      font-size: 16rem;
+      line-height: 22rem;
+      color: rgba(0, 0, 0, 0.5);
+      font-weight: 500;
+      transition: color 0.18s ease;
+    }
+
+    .q-option.is-selected .q-label { color: rgba(0, 0, 0, 0.8); }
+    .q-option.is-selected .q-box { border-color: rgba(63, 221, 128, 0); opacity: 0; }
+    .q-option.is-selected .q-check { opacity: 1; transform: scale(1); }
+
+    .q-nav {
+      position: absolute;
+      top: 382rem;
+      left: 0;
+      width: 100%;
+      height: 26rem;
+    }
+
+    .q-btn {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 17rem;
+      line-height: 1;
+      letter-spacing: 0.25rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .q-btn:active { opacity: 0.6; }
+
+    .q-prev {
+      left: calc(50% - 62.84rem);
+      color: rgba(0, 0, 0, 0.2);
+    }
+
+    .q-next {
+      left: calc(50% + 63.16rem);
+      color: #4de181;
+    }
+
+    .q-nav.is-solo .q-next { left: 50%; }
+
+    /* ===== 问卷结束页（整页缩放 + 翻转揭晓；与封面中心对齐） =====
+       外层 .endpage 负责「渐显 + 缩放(0.65→1.0)」，内层 .ep-frame 负责「翻转(720°)」，
+       两者各用独立曲线，缩放与翻转叠加联动，整体流畅优雅。 */
+    .endpage {
+      position: absolute;
+      left: 21rem;
+      top: 1373.5rem;
+      width: 348rem;
+      height: 460rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform-origin: center center;
+      will-change: transform, opacity;
+      /* 提交后渐显出现（300ms） */
+      transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+    }
+
+    .ep-frame {
+      position: absolute;
+      inset: 0;
+      background: #fcefcf;
+      border-radius: 12rem;
+      overflow: hidden;
+      transform-origin: center center;
+      will-change: transform;
+      -webkit-backface-visibility: visible;
+      backface-visibility: visible;
+    }
+
+    /* 激活：外层渐显 + 缩放（0.3→1.0，0~1200ms，优雅自然的缓出曲线） */
+    .endpage.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, visibility 0s;
+      animation: ep-scale 1200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* 内层：整个结束页翻转（2 圈 / 720°，1200ms，最后 180° 减速定格） */
+    .endpage.is-active .ep-frame {
+      animation: ep-flip 1200ms both;
+    }
+
+    @keyframes ep-scale {
+      0%   { transform: scale(0.3); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes ep-flip {
+      0%   { transform: perspective(1200rem) rotateY(0deg);   animation-timing-function: cubic-bezier(0.16, 0.70, 0.42, 0.98); }
+      70%  { transform: perspective(1200rem) rotateY(540deg); animation-timing-function: cubic-bezier(0.22, 0.68, 0.20, 1); }
+      100% { transform: perspective(1200rem) rotateY(720deg); }
+    }
+
+    /* cardcover：旋转进入最后 180°（540°，时间轴 70%）时透明度直接归 0，体现揭晓 */
+    @keyframes ep-reveal {
+      0%      { opacity: 1; }
+      69.999% { opacity: 1; }
+      70%     { opacity: 0; }
+      100%    { opacity: 0; }
+    }
+
+    .endpage.is-active .ep-cardcover { animation: ep-reveal 1200ms linear both; }
+
+    /* 内层白色卡面 */
+    .endpage .ep-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 312rem;
+      height: 426rem;
+      background: #ffffff;
+      border-radius: 5rem;
+    }
+
+    .endpage .ep-title {
+      position: absolute;
+      top: 39rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 226rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6rem;
+      text-align: center;
+    }
+
+    .endpage .ep-title h2 {
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      font-weight: 800;
+      font-size: 24rem;
+      line-height: normal;
+      letter-spacing: 0.5rem;
+      color: rgba(0, 0, 0, 0.9);
+    }
+
+    .endpage .ep-title p {
+      font-weight: 500;
+      font-size: 15rem;
+      line-height: 20rem;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .endpage .ep-title p .gold { color: #b59d70; }
+
+    /* 红包封面图（hongbao），揭晓后定格于设计稿位置 */
+    .endpage .ep-hongbao {
+      position: absolute;
+      left: 113rem;
+      top: 125rem;
+      width: 123rem;
+      height: 203rem;
+      object-fit: cover;
+      border-radius: 8rem;
+      display: block;
+    }
+
+    /* 领取按钮 */
+    .endpage .ep-claim {
+      position: absolute;
+      left: 84rem;
+      top: 362rem;
+      width: 181rem;
+      height: 46rem;
+      border: none;
+      border-radius: 6rem;
+      background: #f35543;
+      color: #ffffff;
+      font-size: 17rem;
+      font-weight: 500;
+      letter-spacing: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, filter 0.15s ease;
+      font-family: "PingFang SC", sans-serif;
+    }
+
+    .endpage .ep-claim:active { transform: scale(0.97); filter: brightness(0.95); }
+
+    /* 彩带碎屑层：在 cardcover 揭晓瞬间炸开飘落（叠在 frame 之上） */
+    .ep-confetti {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .ep-confetti-bit {
+      position: absolute;
+      display: block;
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: ep-confetti 800ms both;
+    }
+    /* 先向外炸开(pop)，再受“重力”飘落并淡出 */
+    @keyframes ep-confetti {
+      0% {
+        transform: translate3d(0, 0, 0) scale(0.3) rotate(0deg);
+        opacity: 1;
+        animation-timing-function: cubic-bezier(0.10, 0.75, 0.30, 1);
+      }
+      30% {
+        transform: translate3d(var(--bx), var(--by), 0) scale(1) rotate(var(--r1));
+        opacity: 1;
+        animation-timing-function: cubic-bezier(0.40, 0.02, 0.60, 1);
+      }
+      100% {
+        transform: translate3d(var(--ex), var(--ey), 0) scale(0.85) rotate(var(--r2));
+        opacity: 0;
+      }
+    }
+
+    /* 卡片封面图（cardcover）：覆盖整页，揭晓时淡出 */
+    .endpage .ep-cardcover {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 348rem;
+      height: 460rem;
+      object-fit: cover;
+      pointer-events: none;
+      will-change: opacity;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -261,12 +668,290 @@
         <span>完成问卷可获一份专属礼物</span>
       </div>
     </section>
+
+    <!-- ===== 问卷轮播 ===== -->
+    <div class="carousel" id="carousel" aria-label="问卷">
+      <article class="q-card" data-index="0">
+        <div class="q-inner"></div>
+        <div class="q-num">Q1</div>
+        <div class="q-progress">进度：<span class="q-cur">1</span>/4</div>
+        <h2 class="q-text">你在刷朋友圈时，有注意到这个广告前 3 秒“取景框放大”的动态效果吗?【单选】</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">注意到了，觉得挺新颖的，有被吸引停下观看</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">注意到了，但觉得平平无奇，直接滑走了</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没注意到/滑得太快，直接看到了后面的完整画面</span></li>
+        </ul>
+        <div class="q-nav is-solo">
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="1">
+        <div class="q-inner"></div>
+        <div class="q-num">Q2</div>
+        <div class="q-progress">进度：<span class="q-cur">2</span>/4</div>
+        <h2 class="q-text">对于这个“取景框展开变成完整视频”的设计，你的直观感受是？【单选】</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">很有仪式感，完美契合520的浪漫氛围</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没太看懂这个转场，觉得有点莫名其妙</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">遮挡了核心画面，影响我第一时间看清代言人/品牌</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="2">
+        <div class="q-inner"></div>
+        <div class="q-num">Q3</div>
+        <div class="q-progress">进度：<span class="q-cur">3</span>/4</div>
+        <h2 class="q-text">视频完整播放、且底部出现商品后，你是否点击了广告进入下一步？【单选00】</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">点击了，这个商品很吸引人，自然的就点击了</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">根本不知道这个地方是可以点击跳转的</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">根本不知道这个地方是可以点击跳转的</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="3">
+        <div class="q-inner"></div>
+        <div class="q-num">Q4</div>
+        <div class="q-progress">进度：<span class="q-cur">4</span>/4</div>
+        <h2 class="q-text">你希望以后看到更多这种有特殊“入场动画”的广告形态吗？【单选】</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">喜欢！期待看到更多有趣的形状和创意</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">无所谓，主要看广告内容、或明星是谁</span></li>
+          <li class="q-option"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">不喜欢，更习惯直接、高清的完整画面呈现</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next q-submit" type="button">提交</button>
+        </div>
+      </article>
+
+      <div class="q-toast" id="qToast" role="status" aria-live="polite">请先选择一个选项</div>
+    </div>
+
+    <!-- ===== 问卷结束页 ===== -->
+    <section class="endpage" id="endpage" aria-label="问卷结束页">
+      <div class="ep-frame">
+        <div class="ep-panel"></div>
+        <div class="ep-title">
+          <h2>感谢你的参与</h2>
+          <p>阿心送你一份 <span class="gold">红包封面</span></p>
+        </div>
+        <img class="ep-hongbao" src="images/hongbao.png" alt="小微的红包">
+        <button class="ep-claim" type="button">领取红包封面</button>
+        <img class="ep-cardcover" src="images/cardcover.png" alt="" aria-hidden="true">
+        <div class="ep-confetti" aria-hidden="true"></div>
+      </div>
+    </section>
   </div>
 
   <script>
-    document.getElementById('startBtn').addEventListener('click', function () {
-      console.log('开始回答问卷');
-    });
+    (function () {
+      var cover = document.querySelector('.cover');
+      var startBtn = document.getElementById('startBtn');
+      var carousel = document.getElementById('carousel');
+      var endpage = document.getElementById('endpage');
+      var cards = Array.prototype.slice.call(carousel.querySelectorAll('.q-card'));
+
+      /* ---------- 选项选择（四题均为单选） ---------- */
+      cards.forEach(function (card) {
+        var list = card.querySelector('.q-options');
+        var mode = list.getAttribute('data-select');
+        var options = Array.prototype.slice.call(list.querySelectorAll('.q-option'));
+        options.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            if (mode === 'single') {
+              options.forEach(function (o) { o.classList.remove('is-selected'); });
+              opt.classList.add('is-selected');
+            } else {
+              opt.classList.toggle('is-selected');
+            }
+            // 已作答 → 点亮右上角进度题号（#07c160）
+            var answered = options.some(function (o) { return o.classList.contains('is-selected'); });
+            card.classList.toggle('is-answered', answered);
+          });
+        });
+      });
+
+      /* ---------- 未作答提示 toast ---------- */
+      var toast = document.getElementById('qToast');
+      var toastTimer = null;
+      function showToast() {
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+      }
+      function isAnswered(idx) {
+        return !!cards[idx].querySelector('.q-option.is-selected');
+      }
+
+      /* =========================================================
+         3D 层叠卡片轮播（Stacked Card Carousel）
+         · 卡片在 Z 轴上像扑克牌一样层叠，按剩余真实数量展示（不循环回收）
+         · 初始 3 张：Q1 在前，Q2 / Q3 依次叠在身后，Q4 暂藏于第三张之后
+         · 越往后剩余越少：展示 Q2→身后 2 张，Q3→身后 1 张，Q4→身后 0 张
+         · 层级递减：scale 1 / 0.9 / 0.8，opacity 1 / 0.7 / 0.4，z 8 / 6 / 4
+         · translate3d / scale / z-index 在同一次过渡中平滑联动（GPU 加速）
+         ========================================================= */
+      var N = cards.length;                  // 卡片总数
+      var ANIM_MS = 520;                     // 单次切换时长（与 EASE 时长对齐）
+      // 平滑联动缓动：入场快、收尾稳、略带分量感
+      var EASE = 'transform 0.52s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease';
+
+      /* 卡片以自身中心缩放，单纯 10/20px 位移会被缩放“吃掉”而藏在前卡之后；
+         用「目标露出量 peek」反推真实右移：translate = peek + (1 - scale) * 宽 / 2。 */
+      var CARD_W = 303.67;
+      function rightOffset(peek, scale) { return peek + (1 - scale) * CARD_W / 2; }
+
+      // 槽位（前 → 后）：右移露出量(px) / 缩放 / 层级 / 透明度（仅水平偏移）
+      var SLOT = [
+        { x: rightOffset(0,  1.0), s: 1.0, z: 8, op: 1   }, // Active：居中正前方
+        { x: rightOffset(10, 0.9), s: 0.9, z: 6, op: 0.7 }, // 第二张：右移露出 ~10px
+        { x: rightOffset(20, 0.8), s: 0.8, z: 4, op: 0.4 }  // 第三张及以后：右移露出 ~20px
+      ];
+      var HIDDEN = { x: SLOT[2].x, s: 0.8, z: 2,  op: 0, rot: 0, y: 0 };          // 第三张之后：藏在身后，等待上浮
+      var EXIT   = { x: -36, s: 1.05, z: 10, op: 0, rot: -9, y: -78 };            // 已作答：向左上抛飞离场
+
+      var current = 0;       // 当前最前端卡片索引
+      var animating = false;
+
+      function setStyle(el, d, useTransition) {
+        el.style.transition = useTransition ? EASE : 'none';
+        el.style.transform =
+          'translate3d(calc(-50% + ' + d.x + 'rem), ' + (d.y || 0) + 'rem, 0) rotate(' + (d.rot || 0) + 'deg) scale(' + d.s + ')';
+        el.style.opacity = String(d.op);
+        el.style.zIndex = String(d.z);
+      }
+
+      // 根据卡片相对当前最前端的位置，决定它的展示状态
+      function stateForRel(rel) {
+        if (rel < 0) return EXIT;        // 已作答 → 抛飞离场
+        if (rel >= 3) return HIDDEN;     // 第三张之后 → 藏在身后
+        return SLOT[rel];                // 0 / 1 / 2 → Active / 第二张 / 第三张
+      }
+
+      function applyAll(useTransition) {
+        cards.forEach(function (el, i) {
+          var rel = i - current;
+          setStyle(el, stateForRel(rel), useTransition);
+          el.style.pointerEvents = (rel === 0) ? 'auto' : 'none';
+        });
+      }
+
+      function next() {
+        if (animating || current >= N - 1) return;
+        if (!isAnswered(current)) { showToast(); return; }  // 未选择则不进入下一题
+        animating = true;
+        current++;                       // 前卡抛飞离场，身后卡片整体上浮一层（z/scale/位移联动）
+        applyAll(true);
+        setTimeout(function () { animating = false; }, ANIM_MS);
+      }
+
+      function prev() {
+        if (animating || current <= 0) return;
+        animating = true;
+        current--;                       // 上一张从离场位滑回正前方，其余整体后退一层
+        applyAll(true);
+        setTimeout(function () { animating = false; }, ANIM_MS);
+      }
+
+      /* ---------- 导航按钮联动（仅前卡可点击） ---------- */
+      cards.forEach(function (card) {
+        var nextBtn = card.querySelector('.q-next');
+        var prevBtn = card.querySelector('.q-prev');
+        if (nextBtn) nextBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (nextBtn.classList.contains('q-submit')) {
+            if (!isAnswered(current)) { showToast(); return; }  // 末题未选择则不提交
+            submit();
+          } else { next(); }
+        });
+        if (prevBtn) prevBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          prev();
+        });
+      });
+
+      /* 轮播仅通过「下一题 / 上一题」按钮切换，不支持滑动/拖拽手势。 */
+
+      /* ---------- 阶段切换：封面 → 轮播 → 结束页 ---------- */
+      function showCarousel() {
+        cover.classList.add('is-hidden');
+        setTimeout(function () {
+          carousel.classList.add('is-active');
+          current = 0;
+          applyAll(false);
+        }, 400);
+      }
+
+      /* ---------- 彩带碎屑炸开飘落（揭晓瞬间的惊喜） ----------
+         在 cardcover 透明度归 0（翻转 70% = 激活后 840ms）时触发：
+         先从卡面中心向外炸开（pop），随后受“重力”飘落并淡出，总时长 800ms。 */
+      var CONFETTI_COLORS = ['#10D1EB', '#5AE381', '#FCE866', '#FF837F', '#FFB758'];
+      function burstConfetti() {
+        var layer = endpage.querySelector('.ep-confetti');
+        if (!layer) return;
+        while (layer.firstChild) layer.removeChild(layer.firstChild);
+
+        var COUNT = 44;
+        var originX = 174, originY = 200;            // frame(348×460) 内的炸开原点（rem）
+        for (var i = 0; i < COUNT; i++) {
+          var bit = document.createElement('i');
+          bit.className = 'ep-confetti-bit';
+          var w = 4 + Math.random() * 4;             // 4~8（碎屑宽）
+          var h = 6 + Math.random() * 7;             // 6~13（碎屑高，呈小条带）
+          bit.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+          bit.style.width = w + 'rem';
+          bit.style.height = h + 'rem';
+          bit.style.left = originX + 'rem';
+          bit.style.top = originY + 'rem';
+          bit.style.borderRadius = (Math.random() < 0.5 ? '1rem' : '2rem');
+          layer.appendChild(bit);
+
+          var angle = Math.random() * Math.PI * 2;   // 全向炸开
+          var dist = 60 + Math.random() * 120;       // 爆发半径
+          var bx = Math.cos(angle) * dist;
+          var by = Math.sin(angle) * dist - 30;      // 略偏上，更像“炸开”
+          var fall = 200 + Math.random() * 170;      // 随后下落距离
+          var drift = (Math.random() - 0.5) * 70;    // 飘落横向漂移
+          var r1 = (Math.random() - 0.5) * 240;
+          var r2 = r1 + (Math.random() - 0.5) * 560;
+
+          bit.style.setProperty('--bx', bx.toFixed(1) + 'rem');
+          bit.style.setProperty('--by', by.toFixed(1) + 'rem');
+          bit.style.setProperty('--ex', (bx + drift).toFixed(1) + 'rem');
+          bit.style.setProperty('--ey', (by + fall).toFixed(1) + 'rem');
+          bit.style.setProperty('--r1', r1.toFixed(1) + 'deg');
+          bit.style.setProperty('--r2', r2.toFixed(1) + 'deg');
+        }
+        setTimeout(function () {
+          while (layer.firstChild) layer.removeChild(layer.firstChild);
+        }, 880);
+      }
+
+      function submit() {
+        carousel.classList.remove('is-active');
+        // 提交后间隔 50ms，问卷结束页渐显出现，同时卡片开始翻转揭晓
+        setTimeout(function () {
+          endpage.classList.add('is-active');
+          setTimeout(burstConfetti, 840);  // 与 cardcover 揭晓（翻转 70%）同步炸开
+        }, 50);
+      }
+
+      startBtn.addEventListener('click', showCarousel);
+      var claim = document.querySelector('.ep-claim');
+      if (claim) claim.addEventListener('click', function () { console.log('领取红包封面'); });
+
+      applyAll(false);  // 预排布，避免首帧跳动
+    })();
   </script>
 </body>
 </html>
