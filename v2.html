@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>520 节点调研问卷</title>
+  <style>
+    /* 1rem = 1 个 Figma 设计像素（设计稿基准宽度 390）。
+       在 390px 视口下 1rem = 1px，做到像素级还原，同时随视口宽度等比缩放。 */
+    html {
+      font-size: calc(100vw / 390);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ===== 顶部：固定吸顶、永远位于最上层，页面纵向滚动时保持不动 ===== */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 97rem;
+      overflow: hidden;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .topbar img {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+    }
+
+    /* ===== 阶段1 整体画框（含微信文章背景） =====
+       画框锁定为设计稿比例 390:2314，宽度铺满视口、高度随宽度等比。
+       所有模块（封面/卡片/结束页）均以 rem(=100vw/390) 定位于此画框内，
+       因此无论视口如何缩放，模块与页面背景的相对位置始终与设计稿一致。 */
+    .frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 390 / 2314;
+    }
+
+    .frame .bg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* ===== 问卷封面卡片（覆盖在文章空白处） ===== */
+    .cover {
+      position: absolute;
+      top: 1451rem;
+      left: 21rem;
+      width: 348rem;
+      height: 460rem;
+      background: #e8fdef;
+      border-radius: 12rem;
+    }
+
+    /* 标题区 */
+    .cover .title {
+      position: absolute;
+      top: 35rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 226rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6rem;
+      text-align: center;
+    }
+
+    .cover .title h1 {
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      font-weight: 800;
+      font-size: 24rem;
+      line-height: normal;
+      letter-spacing: 0.5rem;
+      color: rgba(0, 0, 0, 0.9);
+      width: 100%;
+    }
+
+    .cover .title .subtitle {
+      font-weight: 500;
+      font-size: 15rem;
+      line-height: 20rem;
+      letter-spacing: 1rem;
+      color: rgba(0, 0, 0, 0.5);
+      width: 100%;
+    }
+
+    .cover .title .subtitle .lead {
+      letter-spacing: 4rem;
+    }
+
+    /* 封面插画：朋友圈广告 + 阿心 + 彩色爱心（整组导出图） */
+    .cover .cover-illust {
+      position: absolute;
+      left: 83.886rem;
+      top: 119rem;
+      width: 180.354rem;
+      height: 198.064rem;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* 开始回答按钮 */
+    .cover .start-btn {
+      position: absolute;
+      top: 342rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 207rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12rem 24rem;
+      border: none;
+      border-radius: 86rem;
+      background-image: linear-gradient(212.02deg, #67e682 10.97%, #2bd97e 59.57%);
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      font-weight: 800;
+      font-size: 17rem;
+      letter-spacing: 0.25rem;
+      color: #ffffff;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 6rem 14rem rgba(43, 217, 126, 0.32);
+      transition: transform 0.08s ease, box-shadow 0.15s ease;
+    }
+
+    .cover .start-btn:active {
+      transform: translateX(-50%) scale(0.96);
+      box-shadow: 0 3rem 8rem rgba(43, 217, 126, 0.3);
+    }
+
+    /* 底部礼物提示 */
+    .cover .gift {
+      position: absolute;
+      top: 408rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4rem;
+      white-space: nowrap;
+    }
+
+    .cover .gift .gift-icon {
+      width: 16rem;
+      height: 16rem;
+    }
+
+    .cover .gift span {
+      font-weight: 500;
+      font-size: 14rem;
+      letter-spacing: 0.5rem;
+      color: #b59d70;
+    }
+
+    /* ===== 阶段切换淡入淡出 ===== */
+    .cover {
+      transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+      will-change: opacity;
+    }
+
+    .cover.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* ===== 问卷轮播容器（与「问卷封面」中心对齐） =====
+       与封面同基准：top 1451rem、height 460rem，卡片中心与封面完全重合。 */
+    .carousel {
+      position: absolute;
+      left: 0;
+      top: 1451rem;
+      width: 390rem;
+      height: 460rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+      overflow: visible;
+      touch-action: pan-y;
+    }
+
+    .carousel.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+    }
+
+    /* ===== 单张问卷卡片 ===== */
+    .q-card {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 348rem;
+      height: 460rem;
+      border-radius: 11.793rem;
+      background: #c6f6d6;
+      transform-origin: center center;
+      transform: translate3d(-50%, 0, 0) scale(1);
+      opacity: 1;
+      will-change: transform, opacity;
+      -webkit-transform: translate3d(-50%, 0, 0) scale(1);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    /* 卡片白色面板（圆角 5，四周留 12 的浅绿描边） */
+    .q-inner {
+      position: absolute;
+      left: 12rem;
+      top: 12rem;
+      width: 324rem;
+      height: 436rem;
+      background: #ffffff;
+      border-radius: 5rem;
+      z-index: 0;
+    }
+
+    /* 顶部插画整带（素材区 + 阿心，整组导出图，含白色面板顶部）——Q4/Q5 使用 */
+    .q-top {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 348rem;
+      height: auto;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+
+    /* 顶部素材区（视频，自动循环）——严格按设计稿 221.333×166、居中于卡片 */
+    .q-media {
+      position: absolute;
+      left: 63.67rem;
+      top: 21rem;
+      width: 221.333rem;
+      height: 166rem;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .q-video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+    }
+    /* Q1/Q2：心形取景框——视频本身已自带心形（白底，与面板融为一体），无需额外蒙版 */
+    /* Q3：圆角矩形取景框 */
+    .q-media--rect { border-radius: 12rem; }
+
+    /* 阿心吉祥物（独立图层，叠于素材区之上，按设计稿分别定位） */
+    .q-mascot {
+      position: absolute;
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
+      display: block;
+    }
+    .q-mascot--1 { left: 221.78rem; top: 109rem;    width: 75.504rem; height: 74.843rem; }
+    .q-mascot--2 { left: 235rem;    top: 110rem;    width: 70.711rem; height: 74.211rem; }
+    .q-mascot--3 { left: 227.87rem; top: 114.34rem; width: 63.143rem; height: 64.225rem; }
+
+    /* 未选择即点「下一题」时的轻提示 */
+    .q-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 86rem;
+      transform: translate(-50%, 6rem);
+      max-width: 240rem;
+      padding: 8rem 16rem;
+      border-radius: 999rem;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 12rem;
+      line-height: 1.4;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .q-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* 问题文案（行内绿色 Qx 标签 + 题干） */
+    .q-text {
+      position: absolute;
+      left: 37rem;
+      top: 192rem;
+      width: 274rem;
+      font-size: 16rem;
+      line-height: 1.45;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 600;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+    }
+    .q-card[data-index="0"] .q-text { top: 191rem; }
+    .q-tag {
+      color: #3fdd80;
+      font-weight: 800;
+      margin-right: 5rem;
+    }
+
+    /* 选项（每项 top 由行内样式按题给定） */
+    .q-options {
+      position: absolute;
+      inset: 0;
+      list-style: none;
+      z-index: 2;
+    }
+
+    .q-option {
+      position: absolute;
+      left: 37rem;
+      width: 269rem;
+      cursor: pointer;
+    }
+
+    .q-box {
+      position: absolute;
+      left: 0;
+      top: 3rem;
+      width: 16rem;
+      height: 16rem;
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 2rem;
+      background: #ffffff;
+      transition: border-color 0.18s ease, opacity 0.18s ease;
+    }
+
+    .q-check {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16rem;
+      height: 19rem;
+      opacity: 0;
+      transform: scale(0.4);
+      transform-origin: 50% 60%;
+      transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .q-label {
+      position: absolute;
+      left: 27rem;
+      top: 0;
+      width: 242rem;
+      font-size: 15rem;
+      line-height: 22rem;
+      color: rgba(0, 0, 0, 0.5);
+      font-weight: 500;
+      transition: color 0.18s ease;
+    }
+
+    .q-option.is-selected .q-label { color: rgba(0, 0, 0, 0.8); }
+    .q-option.is-selected .q-box { opacity: 0; }
+    .q-option.is-selected .q-check { opacity: 1; transform: scale(1); }
+
+    /* 导航：纯文字（无按钮底色） */
+    .q-nav {
+      position: absolute;
+      top: 400rem;
+      left: 0;
+      width: 100%;
+      height: 24rem;
+      z-index: 2;
+    }
+
+    .q-btn {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .q-btn:active { opacity: 0.6; }
+
+    .q-prev { left: 103.5rem; color: rgba(0, 0, 0, 0.2); }
+    .q-next { left: 244.5rem; color: #4de181; }
+    .q-nav.is-solo .q-next { left: 174rem; }
+
+    /* ===== Q5：开放题卡片（写一写 / 直接提交） ===== */
+    .q5-prompt {
+      position: absolute;
+      left: 50%;
+      top: 217rem;
+      transform: translateX(-50%);
+      width: 224rem;
+      text-align: center;
+      font-size: 16rem;
+      line-height: 30rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 600;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.25s ease;
+    }
+
+    .q5-writebox {
+      position: absolute;
+      left: 50%;
+      top: 206rem;
+      transform: translateX(-50%);
+      width: 270rem;
+      height: 124rem;
+      padding: 12rem;
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 8rem;
+      background: #fafafa;
+      font-size: 14rem;
+      line-height: 22rem;
+      color: rgba(0, 0, 0, 0.85);
+      font-family: "PingFang SC", sans-serif;
+      resize: none;
+      outline: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 3;
+      transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    }
+
+    .q5-card.is-writing .q5-prompt { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-write { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-writebox {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s;
+    }
+
+    .q5-write {
+      position: absolute;
+      left: 50%;
+      top: 350rem;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 800;
+      color: #4de181;
+      white-space: nowrap;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.2s ease;
+    }
+    .q5-write .arr { font-size: 15rem; line-height: 1; }
+
+    .q5-skip {
+      position: absolute;
+      left: 50%;
+      top: 400rem;
+      transform: translateX(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 800;
+      color: #ccc;
+      white-space: nowrap;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: color 0.2s ease;
+    }
+    /* 输入状态下用户已开始输入：提交按钮点亮为绿色 */
+    .q5-skip.has-input { color: #4de181; }
+
+    .q5-write:active, .q5-skip:active { opacity: 0.6; }
+
+    /* ===== 问卷结束页（整页缩放 + 翻转揭晓；与封面中心对齐） =====
+       外层 .endpage 负责「渐显 + 缩放(0.65→1.0)」，内层 .ep-frame 负责「翻转(720°)」，
+       两者各用独立曲线，缩放与翻转叠加联动，整体流畅优雅。 */
+    .endpage {
+      position: absolute;
+      left: 21rem;
+      top: 1451rem;
+      width: 348rem;
+      height: 460rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform-origin: center center;
+      will-change: transform, opacity;
+      /* 提交后渐显出现（300ms） */
+      transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+    }
+
+    .ep-frame {
+      position: absolute;
+      inset: 0;
+      background: #fcefcf;
+      border-radius: 12rem;
+      overflow: hidden;
+      transform-origin: center center;
+      will-change: transform;
+      -webkit-backface-visibility: visible;
+      backface-visibility: visible;
+    }
+
+    /* 激活：外层渐显 + 缩放（0.3→1.0，0~1200ms，优雅自然的缓出曲线） */
+    .endpage.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, visibility 0s;
+      animation: ep-scale 1200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* 内层：整个结束页翻转（2 圈 / 720°，1200ms，最后 180° 减速定格） */
+    .endpage.is-active .ep-frame {
+      animation: ep-flip 1200ms both;
+    }
+
+    @keyframes ep-scale {
+      0%   { transform: scale(0.3); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes ep-flip {
+      0%   { transform: perspective(1200rem) rotateY(0deg);   animation-timing-function: cubic-bezier(0.16, 0.70, 0.42, 0.98); }
+      70%  { transform: perspective(1200rem) rotateY(540deg); animation-timing-function: cubic-bezier(0.22, 0.68, 0.20, 1); }
+      100% { transform: perspective(1200rem) rotateY(720deg); }
+    }
+
+    /* cardcover：旋转进入最后 180°（540°，时间轴 70%）时透明度直接归 0，体现揭晓 */
+    @keyframes ep-reveal {
+      0%      { opacity: 1; }
+      69.999% { opacity: 1; }
+      70%     { opacity: 0; }
+      100%    { opacity: 0; }
+    }
+
+    .endpage.is-active .ep-cardcover { animation: ep-reveal 1200ms linear both; }
+
+    /* 内层白色卡面 */
+    .endpage .ep-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 312rem;
+      height: 426rem;
+      background: #ffffff;
+      border-radius: 5rem;
+    }
+
+    .endpage .ep-title {
+      position: absolute;
+      top: 39rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 226rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6rem;
+      text-align: center;
+    }
+
+    .endpage .ep-title h2 {
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      font-weight: 800;
+      font-size: 24rem;
+      line-height: normal;
+      letter-spacing: 0.5rem;
+      color: rgba(0, 0, 0, 0.9);
+    }
+
+    .endpage .ep-title p {
+      font-weight: 500;
+      font-size: 15rem;
+      line-height: 20rem;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .endpage .ep-title p .gold { color: #b59d70; }
+
+    /* 红包封面图（hongbao），揭晓后定格于设计稿位置 */
+    .endpage .ep-hongbao {
+      position: absolute;
+      left: 113rem;
+      top: 125rem;
+      width: 123rem;
+      height: 203rem;
+      object-fit: cover;
+      border-radius: 8rem;
+      display: block;
+    }
+
+    /* 领取按钮 */
+    .endpage .ep-claim {
+      position: absolute;
+      left: 84rem;
+      top: 362rem;
+      width: 181rem;
+      height: 46rem;
+      border: none;
+      border-radius: 6rem;
+      background: #f35543;
+      color: #ffffff;
+      font-size: 17rem;
+      font-weight: 500;
+      letter-spacing: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, filter 0.15s ease;
+      font-family: "PingFang SC", sans-serif;
+    }
+
+    .endpage .ep-claim:active { transform: scale(0.97); filter: brightness(0.95); }
+
+    /* 已领取态：红色之上叠加 20% 白（颜色变浅），文案为 ✅已领取 */
+    .endpage .ep-claim.is-claimed {
+      background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), #f35543;
+    }
+
+    /* 飞出的券：cardcover 揭晓瞬间，播放 Lottie「飞出的券」动画（彩色卡券从中心炸开飞出） */
+    .ep-confetti {
+      position: absolute;
+      left: 50%;
+      top: -36rem;        /* 放大 1.5 倍后保持炸开原点不变（动作中心约在容器 38% 处） */
+      width: 570rem;
+      height: 570rem;
+      transform: translateX(-50%);
+      z-index: 20;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .ep-confetti svg { overflow: visible !important; }
+
+    /* 卡片封面图（cardcover）：覆盖整页，揭晓时淡出 */
+    .endpage .ep-cardcover {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 348rem;
+      height: 460rem;
+      object-fit: cover;
+      pointer-events: none;
+      will-change: opacity;
+      display: block;
+    }
+
+    /* ===== 礼物抽取页（提交成功后展示，点击「抽奖」再触发翻转揭晓） =====
+       与结束页中心对齐（top 1451rem），渐显 + 轻微缩放入场。 */
+    .giftdraw {
+      position: absolute;
+      left: 21rem;
+      top: 1451rem;
+      width: 348rem;
+      height: 460rem;
+      background: #fcefcf;
+      border-radius: 11.793rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform-origin: center center;
+      will-change: transform, opacity;
+      transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+    }
+    .giftdraw.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.45s ease, visibility 0s;
+      animation: gd-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    /* 退场：点击抽奖后快速淡出，为翻转动画让位 */
+    .giftdraw.is-leaving {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    @keyframes gd-in {
+      0%   { transform: scale(0.82); }
+      100% { transform: scale(1); }
+    }
+
+    .giftdraw .gd-panel {
+      position: absolute;
+      left: 12rem;
+      top: 12rem;
+      width: 324rem;
+      height: 436rem;
+      background: #ffffff;
+      border-radius: 5rem;
+      z-index: 0;
+    }
+
+    /* 礼物插画整带（礼盒 + 阿心 + 闪光，整组导出图，含白色面板顶部） */
+    .giftdraw .gd-top {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 348rem;
+      height: auto;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .giftdraw .gd-text {
+      position: absolute;
+      left: 50%;
+      top: 257rem;
+      transform: translateX(-50%);
+      width: 220rem;
+      text-align: center;
+      font-size: 16rem;
+      line-height: 30rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 600;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .giftdraw .gd-draw {
+      position: absolute;
+      left: 84rem;
+      top: 362rem;
+      width: 181rem;
+      height: 46rem;
+      border: none;
+      border-radius: 6rem;
+      background: #f35543;
+      color: #ffffff;
+      font-size: 17rem;
+      font-weight: 500;
+      letter-spacing: 0.5rem;
+      cursor: pointer;
+      z-index: 2;
+      transition: transform 0.08s ease, filter 0.15s ease;
+      font-family: "PingFang SC", sans-serif;
+    }
+    .giftdraw .gd-draw:active { transform: scale(0.97); filter: brightness(0.95); }
+
+    /* ===== 红包封面领取页（占位页，内容后续填充） ===== */
+    .claimpage {
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+    }
+    .claimpage.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.28s ease, visibility 0s;
+    }
+    /* 左上角返回入口 */
+    .claimpage .cp-back {
+      position: absolute;
+      top: 50rem;
+      left: 12rem;
+      width: 40rem;
+      height: 40rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      cursor: pointer;
+      z-index: 2;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .claimpage .cp-back svg { width: 22rem; height: 22rem; display: block; }
+    .claimpage .cp-back:active { opacity: 0.5; }
+    /* 占位内容（后续填充） */
+    .claimpage .cp-placeholder {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(0, 0, 0, 0.25);
+      font-size: 15rem;
+      letter-spacing: 1rem;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" aria-label="顶部">
+    <img src="images/top.png" alt="">
+  </header>
+
+  <div class="frame">
+    <img class="bg" src="images/background.png" alt="微信营销 520 节点优秀案例精选">
+
+    <section class="cover" aria-label="520 调研小问卷">
+      <div class="title">
+        <h1>520 调研小问卷</h1>
+        <p class="subtitle"><span class="lead">花1</span>分钟，和阿心聊一聊</p>
+      </div>
+
+      <img class="cover-illust" src="images/cover-illust.png" alt="">
+
+      <button class="start-btn" type="button" id="startBtn">开始回答</button>
+
+      <div class="gift">
+        <img class="gift-icon" src="images/gift.svg" alt="">
+        <span>完成问卷领专属礼物</span>
+      </div>
+    </section>
+
+    <!-- ===== 问卷轮播 ===== -->
+    <div class="carousel" id="carousel" aria-label="问卷">
+      <article class="q-card" data-index="0">
+        <div class="q-inner"></div>
+        <div class="q-media"><video class="q-video" src="images/Q1.mp4" autoplay loop muted playsinline preload="auto"></video></div>
+        <img class="q-mascot q-mascot--1" src="images/q1-mascot.png" alt="">
+        <h2 class="q-text"><span class="q-tag">Q1</span>你在刷朋友圈时，有注意到这个广告前 3 秒“心形取景框放大”的动态效果吗?</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:280rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">注意到了，觉得挺新颖的</span></li>
+          <li class="q-option" style="top:318rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">注意到了，但觉得平平无奇</span></li>
+          <li class="q-option" style="top:356rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没注意到，直接看到了完整画面</span></li>
+        </ul>
+        <div class="q-nav is-solo">
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="1">
+        <div class="q-inner"></div>
+        <div class="q-media"><video class="q-video" src="images/Q1.mp4" autoplay loop muted playsinline preload="auto"></video></div>
+        <img class="q-mascot q-mascot--2" src="images/q2-mascot.png" alt="">
+        <h2 class="q-text"><span class="q-tag">Q2</span>对于这个异形取景框展开变成完整视频的设计，你的直观感受是？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:257rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">很有仪式感，完美契合 520 的浪漫节日氛围</span></li>
+          <li class="q-option" style="top:307rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">遮挡了核心画面，影响我第一时间看清代言人/品牌</span></li>
+          <li class="q-option" style="top:357rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没太看懂这个转场，觉得有点莫名其妙</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="2">
+        <div class="q-inner"></div>
+        <div class="q-media q-media--rect"><video class="q-video" src="images/Q3.mp4" autoplay loop muted playsinline preload="auto"></video></div>
+        <img class="q-mascot q-mascot--3" src="images/q3-mascot.png" alt="">
+        <h2 class="q-text"><span class="q-tag">Q3</span>在视频底部出现商品后，你是否点击了广告进入下一步操作？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:257rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">点击了，这个商品很吸引人，自然的就点击了</span></li>
+          <li class="q-option" style="top:307rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">点击了，但是不知道这个商品为什么会出现在这里</span></li>
+          <li class="q-option" style="top:357rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">不知道这个地方是可以点击跳转的</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card" data-index="3">
+        <div class="q-inner"></div>
+        <img class="q-top" src="images/q4-top.png" alt="">
+        <h2 class="q-text"><span class="q-tag">Q4</span>你希望以后在朋友圈看到更多这种有特殊的“入场动画”的广告形态吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:257rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">喜欢！期待看到更多有趣的形状和好玩的创意</span></li>
+          <li class="q-option" style="top:307rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">无所谓，主要看广告内容、或者代言明星是谁</span></li>
+          <li class="q-option" style="top:357rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">不喜欢，更习惯直接的画面呈现</span></li>
+        </ul>
+        <div class="q-nav">
+          <button class="q-btn q-prev" type="button">上一题</button>
+          <button class="q-btn q-next" type="button">下一题</button>
+        </div>
+      </article>
+
+      <article class="q-card q5-card" data-index="4">
+        <div class="q-inner"></div>
+        <img class="q-top" src="images/q5-top.png" alt="">
+        <div class="q5-prompt">关于这个广告<br>你有什么单独想说的话吗？<br>欢迎写下你的想法<br>阿心很想听一听</div>
+        <textarea class="q5-writebox" placeholder="写下你想对阿心说的话…"></textarea>
+        <button class="q5-write" type="button">去写写<span class="arr">→</span></button>
+        <button class="q5-skip" type="button">下次再说，直接提交！</button>
+      </article>
+
+      <div class="q-toast" id="qToast" role="status" aria-live="polite">请先选择一个选项</div>
+    </div>
+
+    <!-- ===== 礼物抽取页（提交成功后展示） ===== -->
+    <section class="giftdraw" id="giftdraw" aria-label="礼物抽取页">
+      <div class="gd-panel"></div>
+      <img class="gd-top" src="images/gd-top.png" alt="">
+      <p class="gd-text">感谢你的回答<br>\ 快来抽取你的专属礼物吧 /</p>
+      <button class="gd-draw" type="button" id="drawBtn">抽奖</button>
+    </section>
+
+    <!-- ===== 问卷结束页 ===== -->
+    <section class="endpage" id="endpage" aria-label="问卷结束页">
+      <div class="ep-frame">
+        <div class="ep-panel"></div>
+        <div class="ep-title">
+          <h2>感谢你的参与</h2>
+          <p>阿心送你一份 <span class="gold">红包封面</span></p>
+        </div>
+        <img class="ep-hongbao" src="images/hongbao.png" alt="小微的红包">
+        <button class="ep-claim" type="button">领取红包封面</button>
+        <img class="ep-cardcover" src="images/cardcover.png" alt="" aria-hidden="true">
+      </div>
+      <div class="ep-confetti" aria-hidden="true"></div>
+    </section>
+  </div>
+
+  <!-- ===== 红包封面领取页（占位，内容后续填充） ===== -->
+  <section class="claimpage" id="claimpage" aria-label="红包封面领取页">
+    <button class="cp-back" type="button" id="cpBack" aria-label="返回">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M15 5L8 12L15 19" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="cp-placeholder">页面内容后续填充</div>
+  </section>
+
+  <script src="js/lottie_svg.min.js"></script>
+  <script src="js/coupons.lottie.js"></script>
+  <script>
+    (function () {
+      var cover = document.querySelector('.cover');
+      var startBtn = document.getElementById('startBtn');
+      var carousel = document.getElementById('carousel');
+      var endpage = document.getElementById('endpage');
+      var giftdraw = document.getElementById('giftdraw');
+      var cards = Array.prototype.slice.call(carousel.querySelectorAll('.q-card'));
+
+      /* ---------- 选项选择（Q1~Q4 均为单选；Q5 为开放题无选项） ---------- */
+      cards.forEach(function (card) {
+        var list = card.querySelector('.q-options');
+        if (!list) return;                       // Q5 开放题，跳过
+        var options = Array.prototype.slice.call(list.querySelectorAll('.q-option'));
+        options.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            options.forEach(function (o) { o.classList.remove('is-selected'); });
+            opt.classList.add('is-selected');
+          });
+        });
+      });
+
+      /* ---------- 未作答提示 toast ---------- */
+      var toast = document.getElementById('qToast');
+      var toastTimer = null;
+      function showToast(msg) {
+        toast.textContent = msg || '请先选择一个选项';
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+      }
+      function isAnswered(idx) {
+        var list = cards[idx].querySelector('.q-options');
+        if (!list) return true;                  // Q5 开放题，可直接提交
+        return !!list.querySelector('.q-option.is-selected');
+      }
+
+      /* =========================================================
+         单卡轮播（无重叠 / No-Stack Carousel）
+         · 始终只展示当前一张卡片，居中显示，身后不再叠放其它卡片
+         · 点击「下一题」后才切换：当前卡向左滑出淡出，下一张从右侧滑入居中
+         · 「上一题」反向：当前卡向右退场，上一张从左侧滑回居中
+         · translate3d / opacity 在同一次过渡中平滑联动（GPU 加速）
+         ========================================================= */
+      var N = cards.length;                  // 卡片总数
+      var ANIM_MS = 800;                     // 单次切换时长（与 EASE 时长对齐）
+      // 平滑联动缓动：入场快、收尾稳、略带分量感
+      var EASE = 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease';
+
+      // 卡片尺寸已与封面一致（348×460），无需额外缩放。
+      // 切换动效与 index.html 保持一致（向左上抛飞离场 / 由小到大上浮入场），
+      // 但无堆叠：身后卡片透明度为 0，始终只见当前一张。
+      var ACTIVE   = { x: 0,   s: 1.00, z: 8,  op: 1 };               // 当前卡：居中正前方
+      var EXIT     = { x: -36, s: 1.05, z: 10, op: 0, rot: -9, y: -78 }; // 已作答：向左上抛飞离场
+      var INCOMING = { x: 26,  s: 0.90, z: 4,  op: 0 };               // 未到达：偏右略小、隐于身后待上浮
+
+      var current = 0;       // 当前展示的卡片索引
+      var animating = false;
+
+      function setStyle(el, d, useTransition) {
+        el.style.transition = useTransition ? EASE : 'none';
+        el.style.transform =
+          'translate3d(calc(-50% + ' + d.x + 'rem), ' + (d.y || 0) + 'rem, 0) rotate(' + (d.rot || 0) + 'deg) scale(' + d.s + ')';
+        el.style.opacity = String(d.op);
+        el.style.zIndex = String(d.z);
+      }
+
+      // 根据卡片相对当前卡的位置，决定它的展示状态（无堆叠）
+      function stateForRel(rel) {
+        if (rel < 0) return EXIT;        // 已作答 → 向左滑出
+        if (rel === 0) return ACTIVE;    // 当前 → 居中展示
+        return INCOMING;                 // 后续 → 候在右侧外，等待滑入
+      }
+
+      function applyAll(useTransition) {
+        cards.forEach(function (el, i) {
+          var rel = i - current;
+          setStyle(el, stateForRel(rel), useTransition);
+          el.style.pointerEvents = (rel === 0) ? 'auto' : 'none';
+        });
+      }
+
+      function next() {
+        if (animating || current >= N - 1) return;
+        if (!isAnswered(current)) { showToast(); return; }  // 未选择则不进入下一题
+        animating = true;
+        current++;                       // 前卡抛飞离场，身后卡片整体上浮一层（z/scale/位移联动）
+        applyAll(true);
+        setTimeout(function () { animating = false; }, ANIM_MS);
+      }
+
+      function prev() {
+        if (animating || current <= 0) return;
+        animating = true;
+        current--;                       // 上一张从离场位滑回正前方，其余整体后退一层
+        applyAll(true);
+        setTimeout(function () { animating = false; }, ANIM_MS);
+      }
+
+      /* ---------- 导航按钮联动（仅前卡可点击） ---------- */
+      cards.forEach(function (card) {
+        var nextBtn = card.querySelector('.q-next');
+        var prevBtn = card.querySelector('.q-prev');
+        if (nextBtn) nextBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          next();
+        });
+        if (prevBtn) prevBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          prev();
+        });
+      });
+
+      /* ---------- Q5 开放题：去写写 / 直接提交 ---------- */
+      var q5 = carousel.querySelector('.q5-card');
+      if (q5) {
+        var writeBtn = q5.querySelector('.q5-write');
+        var skipBtn = q5.querySelector('.q5-skip');
+        var writeBox = q5.querySelector('.q5-writebox');
+        if (writeBtn) writeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          q5.classList.add('is-writing');
+          if (skipBtn) skipBtn.textContent = '提交';   // 进入输入态：底部文案变为「提交」
+          if (writeBox) setTimeout(function () { writeBox.focus(); }, 60);
+        });
+        // 用户开始输入后，「提交」点亮为绿色
+        if (writeBox) writeBox.addEventListener('input', function () {
+          if (skipBtn) skipBtn.classList.toggle('has-input', writeBox.value.trim().length > 0);
+        });
+        if (skipBtn) skipBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          showToast('提交成功');                 // 点击同时弹出「提交成功」toast
+          setTimeout(submit, 500);                // 展示 0.5s 后衔接下一步
+        });
+      }
+
+      /* 轮播仅通过「下一题 / 上一题」按钮切换，不支持滑动/拖拽手势。 */
+
+      /* ---------- 阶段切换：封面 → 轮播 → 结束页 ---------- */
+      function showCarousel() {
+        cover.classList.add('is-hidden');
+        setTimeout(function () {
+          carousel.classList.add('is-active');
+          current = 0;
+          applyAll(false);
+        }, 400);
+      }
+
+      /* ---------- 飞出的券（揭晓瞬间的惊喜） ----------
+         在 cardcover 透明度归 0（翻转 70% = 激活后 840ms）时触发：
+         直接播放设计提供的 Lottie「飞出的券」动画，保证与设计稿一致。 */
+      var couponAnim = null;
+      function burstConfetti() {
+        var layer = endpage.querySelector('.ep-confetti');
+        if (!layer || typeof lottie === 'undefined' || !window.COUPON_LOTTIE) return;
+        if (couponAnim) { couponAnim.destroy(); couponAnim = null; }
+        layer.innerHTML = '';
+        couponAnim = lottie.loadAnimation({
+          container: layer,
+          renderer: 'svg',
+          loop: false,
+          autoplay: true,
+          animationData: window.COUPON_LOTTIE,
+          rendererSettings: { preserveAspectRatio: 'xMidYMid meet' }
+        });
+        couponAnim.addEventListener('complete', function () {
+          if (couponAnim) { couponAnim.destroy(); couponAnim = null; }
+          layer.innerHTML = '';
+        });
+      }
+
+      /* 提交成功后：先展示「礼物抽取页」卡片（渐显 + 轻微缩放） */
+      function submit() {
+        carousel.classList.remove('is-active');
+        setTimeout(function () {
+          giftdraw.classList.add('is-active');
+        }, 50);
+      }
+
+      /* 点击「抽奖」：礼物抽取页淡出，问卷结束页翻转揭晓（保留缩放/翻转/彩带） */
+      function drawGift() {
+        giftdraw.classList.add('is-leaving');
+        setTimeout(function () {
+          giftdraw.classList.remove('is-active');
+          endpage.classList.add('is-active');
+          setTimeout(burstConfetti, 840);  // 与 cardcover 揭晓（翻转 70%）同步炸开
+        }, 180);
+      }
+
+      startBtn.addEventListener('click', showCarousel);
+      var drawBtn = document.getElementById('drawBtn');
+      if (drawBtn) drawBtn.addEventListener('click', drawGift);
+
+      /* 领取红包封面 → 跳转占位页；返回后按钮变为「✅已领取」（叠加 20% 白） */
+      var claim = document.querySelector('.ep-claim');
+      var claimpage = document.getElementById('claimpage');
+      var cpBack = document.getElementById('cpBack');
+      if (claim && claimpage) claim.addEventListener('click', function () {
+        claimpage.classList.add('is-active');
+      });
+      if (cpBack) cpBack.addEventListener('click', function () {
+        claimpage.classList.remove('is-active');
+        if (claim) {
+          claim.classList.add('is-claimed');
+          claim.textContent = '✅已领取';
+        }
+      });
+
+      applyAll(false);  // 预排布，避免首帧跳动
+    })();
+  </script>
+</body>
+</html>
