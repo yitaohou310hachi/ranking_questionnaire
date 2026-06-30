@@ -33,7 +33,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 97rem;
+      height: 40.835rem;
       overflow: hidden;
       z-index: 1000;
       pointer-events: none;
@@ -53,7 +53,7 @@
     .frame {
       position: relative;
       width: 100%;
-      aspect-ratio: 390 / 2314;
+      aspect-ratio: 390 / 2258;
     }
 
     .frame .bg {
@@ -68,7 +68,7 @@
     /* ===== 问卷封面卡片（覆盖在文章空白处） ===== */
     .cover {
       position: absolute;
-      top: 1451rem;
+      top: 1392.835rem;
       left: 21rem;
       width: 348rem;
       height: 460rem;
@@ -195,7 +195,7 @@
     .carousel {
       position: absolute;
       left: 0;
-      top: 1451rem;
+      top: 1392.835rem;
       width: 390rem;
       height: 460rem;
       opacity: 0;
@@ -294,8 +294,8 @@
     .q-toast {
       position: absolute;
       left: 50%;
-      bottom: 86rem;
-      transform: translate(-50%, 6rem);
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 6rem));
       max-width: 240rem;
       padding: 8rem 16rem;
       border-radius: 999rem;
@@ -309,7 +309,7 @@
       z-index: 60;
       transition: opacity 0.22s ease, transform 0.22s ease;
     }
-    .q-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .q-toast.show { opacity: 1; transform: translate(-50%, -50%); }
 
     /* 问题文案（行内绿色 Qx 标签 + 题干） */
     .q-text {
@@ -522,7 +522,7 @@
     .endpage {
       position: absolute;
       left: 21rem;
-      top: 1451rem;
+      top: 1392.835rem;
       width: 348rem;
       height: 460rem;
       opacity: 0;
@@ -694,11 +694,12 @@
     .giftdraw {
       position: absolute;
       left: 21rem;
-      top: 1451rem;
+      top: 1392.835rem;
       width: 348rem;
       height: 460rem;
       background: #fcefcf;
       border-radius: 11.793rem;
+      overflow: hidden;        /* 裁掉素材方角溢出圆角处产生的黑边 */
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -881,7 +882,7 @@
         <ul class="q-options" data-select="single">
           <li class="q-option" style="top:257rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">很有仪式感，完美契合 520 的浪漫节日氛围</span></li>
           <li class="q-option" style="top:307rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">遮挡了核心画面，影响我第一时间看清代言人/品牌</span></li>
-          <li class="q-option" style="top:357rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没太看懂这个转场，觉得有点莫名其妙</span></li>
+          <li class="q-option" style="top:357rem"><span class="q-box"></span><img class="q-check" src="images/check.svg" alt=""><span class="q-label">没太看懂这个转场，有点莫名其妙</span></li>
         </ul>
         <div class="q-nav">
           <button class="q-btn q-prev" type="button">上一题</button>
