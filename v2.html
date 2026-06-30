@@ -657,9 +657,23 @@
 
     .endpage .ep-claim:active { transform: scale(0.97); filter: brightness(0.95); }
 
-    /* 已领取态：红色之上叠加 20% 白（颜色变浅），文案为 ✅已领取 */
+    /* 已领取态：红色之上叠加 20% 白（颜色变浅），文案为「对勾icon + 已领取」 */
     .endpage .ep-claim.is-claimed {
       background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), #f35543;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6rem;
+    }
+    /* 已领取对勾：跟随按钮文字颜色（白色），简洁线性对勾，替代 emoji */
+    .endpage .ep-claim .claim-check {
+      width: 18rem;
+      height: 18rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     /* 飞出的券：cardcover 揭晓瞬间，播放 Lottie「飞出的券」动画（彩色卡券从中心炸开飞出） */
@@ -971,6 +985,11 @@
   <script src="js/coupons.lottie.js"></script>
   <script>
     (function () {
+      // 点击轻震反馈：仅安卓等支持 Vibration API 的设备生效，iOS 自动跳过且不报错
+      function haptic(ms) {
+        try { if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate(ms); } catch (e) {}
+      }
+
       var cover = document.querySelector('.cover');
       var startBtn = document.getElementById('startBtn');
       var carousel = document.getElementById('carousel');
@@ -985,6 +1004,7 @@
         var options = Array.prototype.slice.call(list.querySelectorAll('.q-option'));
         options.forEach(function (opt) {
           opt.addEventListener('click', function () {
+            haptic(20);
             options.forEach(function (o) { o.classList.remove('is-selected'); });
             opt.classList.add('is-selected');
           });
@@ -1074,10 +1094,12 @@
         var prevBtn = card.querySelector('.q-prev');
         if (nextBtn) nextBtn.addEventListener('click', function (e) {
           e.stopPropagation();
+          haptic(30);
           next();
         });
         if (prevBtn) prevBtn.addEventListener('click', function (e) {
           e.stopPropagation();
+          haptic(20);
           prev();
         });
       });
@@ -1090,6 +1112,7 @@
         var writeBox = q5.querySelector('.q5-writebox');
         if (writeBtn) writeBtn.addEventListener('click', function (e) {
           e.stopPropagation();
+          haptic(20);
           q5.classList.add('is-writing');
           if (skipBtn) skipBtn.textContent = '提交';   // 进入输入态：底部文案变为「提交」
           if (writeBox) setTimeout(function () { writeBox.focus(); }, 60);
@@ -1100,6 +1123,15 @@
         });
         if (skipBtn) skipBtn.addEventListener('click', function (e) {
           e.stopPropagation();
+          haptic(30);
+          // 输入态（已点「去写写」）：必须填写内容才能提交，否则提示
+          if (q5.classList.contains('is-writing') &&
+              (!writeBox || writeBox.value.trim().length === 0)) {
+            showToast('请先写下你想说的话~');
+            if (writeBox) writeBox.focus();
+            return;
+          }
+          skipBtn.classList.add('has-input');     // 点击瞬间：底部文案点亮为绿色（点按反馈）
           showToast('提交成功');                 // 点击同时弹出「提交成功」toast
           setTimeout(submit, 500);                // 展示 0.5s 后衔接下一步
         });
@@ -1158,22 +1190,24 @@
         }, 180);
       }
 
-      startBtn.addEventListener('click', showCarousel);
+      startBtn.addEventListener('click', function () { haptic(25); showCarousel(); });
       var drawBtn = document.getElementById('drawBtn');
-      if (drawBtn) drawBtn.addEventListener('click', drawGift);
+      if (drawBtn) drawBtn.addEventListener('click', function () { haptic(40); drawGift(); });
 
       /* 领取红包封面 → 跳转占位页；返回后按钮变为「✅已领取」（叠加 20% 白） */
       var claim = document.querySelector('.ep-claim');
       var claimpage = document.getElementById('claimpage');
       var cpBack = document.getElementById('cpBack');
       if (claim && claimpage) claim.addEventListener('click', function () {
+        haptic(30);
         claimpage.classList.add('is-active');
       });
       if (cpBack) cpBack.addEventListener('click', function () {
+        haptic(20);
         claimpage.classList.remove('is-active');
         if (claim) {
           claim.classList.add('is-claimed');
-          claim.textContent = '✅已领取';
+          claim.innerHTML = '<svg class="claim-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.4 4.4L19 7"/></svg>已领取';
         }
       });
 
