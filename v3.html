@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>用户调研问卷</title>
+  <style>
+    /* 1rem = 1 个 Figma 设计像素（设计稿基准宽度 390）。
+       在 390px 视口下 1rem = 1px，做到像素级还原，同时随视口宽度等比缩放。 */
+    html { font-size: calc(100vw / 390); }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ===== 整体画框（自上而下顺序流式布局，模块间距为 0） =====
+       顺序：顶部(固定) → 信息流 → 问卷组件 → 底部信息。
+       画框宽度锁定 390rem（= 100vw），顶部预留固定条高度。 */
+    .frame {
+      position: relative;
+      width: 390rem;
+      margin: 0 auto;
+      padding-top: 504rem;   /* 为固定「顶部」预留高度，避免被遮挡 */
+      background: #ffffff;
+    }
+
+    /* 顶部：始终固定在页面最顶层（position:fixed + 最高层级） */
+    .topfix {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 390rem;
+      height: 504rem;      /* 1170×1512 → 390×504 */
+      display: block;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    /* 信息流 / 底部信息：块级铺满宽度、等比高度，模块间距为 0 */
+    .feed,
+    .foot {
+      display: block;
+      width: 390rem;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* 问卷组件区：夹在「信息流」与「底部信息」之间，
+       封面 / 轮播 / 结束页三阶段在此叠放并切换。 */
+    .quiz {
+      position: relative;
+      width: 390rem;
+      height: 456rem;
+    }
+
+    /* 卡片区统一基准：三阶段（封面 / 轮播 / 结束页）中心对齐于同一位置 */
+
+    /* ===== 问卷封面卡片（整组导出图，点击任意处开始） ===== */
+    .cover {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 342rem;
+      height: 456rem;
+      cursor: pointer;
+      transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+      will-change: opacity;
+    }
+    .cover .cover-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12rem;
+      user-select: none;
+      pointer-events: none;
+    }
+    .cover.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* ===== 问卷轮播容器（与封面中心对齐） ===== */
+    .carousel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 390rem;
+      height: 456rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+      overflow: visible;
+      touch-action: pan-y;
+    }
+    .carousel.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+    }
+
+    /* ===== 单张问卷卡片（浅绿外框 + 白色面板） ===== */
+    .q-card {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 323rem;
+      height: 456rem;
+      border-radius: 11.59rem;
+      background: #ccf4e1;
+      transform-origin: center center;
+      transform: translate3d(-50%, 0, 0) scale(1);
+      opacity: 1;
+      will-change: transform, opacity;
+      -webkit-transform: translate3d(-50%, 0, 0) scale(1);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    /* 卡片白色面板 */
+    .q-inner {
+      position: absolute;
+      left: 12rem;
+      top: 12rem;
+      width: 299rem;
+      height: 432rem;
+      background: #ffffff;
+      border-radius: 4.914rem;
+      z-index: 0;
+    }
+
+    /* 顶部素材区（预留位）——按设计稿保留 233×175 的位置，
+       待提供素材后，往 .q-media 内放入 <img>/<video> 即可替换占位。 */
+    .q-media {
+      position: absolute;
+      top: 12rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 233rem;
+      height: 175rem;
+      z-index: 1;
+      overflow: hidden;
+      border-radius: 8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 空占位提示：放入素材后（有子元素）自动隐藏 */
+    .q-media:empty {
+      background: #f4f6f8;
+    }
+    .q-media:empty::before {
+      content: "素材区";
+      color: rgba(0, 0, 0, 0.22);
+      font-size: 13rem;
+      letter-spacing: 2rem;
+      font-family: "HYQiHei 60S", "PingFang SC", sans-serif;
+    }
+    .q-media img,
+    .q-media video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* 未选择即点「下一题」时的轻提示 */
+    .q-toast {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 6rem));
+      max-width: 240rem;
+      padding: 8rem 16rem;
+      border-radius: 999rem;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 12rem;
+      line-height: 1.4;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .q-toast.show { opacity: 1; transform: translate(-50%, -50%); }
+
+    /* 问题文案（行内绿色 Qx 标签 + 题干） */
+    .q-text {
+      position: absolute;
+      left: 36rem;
+      top: 187rem;
+      width: 251rem;
+      font-size: 16rem;
+      line-height: 26rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 700;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+    }
+    .q-tag {
+      color: #00c868;
+      font-weight: 800;
+      margin-right: 4rem;
+    }
+
+    /* 选项（居中文字胶囊，选中态绿框浅绿底） */
+    .q-options {
+      position: absolute;
+      inset: 0;
+      list-style: none;
+      z-index: 2;
+    }
+    .q-option {
+      position: absolute;
+      left: 36rem;
+      width: 251rem;
+      min-height: 45rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11rem 10rem;
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 6rem;
+      font-size: 15rem;
+      line-height: 1.3;
+      color: rgba(0, 0, 0, 0.8);
+      font-weight: 500;
+      font-family: "HYQiHei 60S", "PingFang SC", sans-serif;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background-color 0.18s ease;
+    }
+    .q-option.is-selected {
+      border-color: rgba(0, 200, 104, 0.8);
+      background: rgba(0, 200, 104, 0.06);
+    }
+    .q-option:active { opacity: 0.75; }
+
+    /* ===== Q5/Q6：开放题卡片（去写写 / 直接提交） ===== */
+    .q5-prompt {
+      position: absolute;
+      left: 50%;
+      top: 200rem;
+      transform: translateX(-50%);
+      width: 230rem;
+      text-align: center;
+      font-size: 16rem;
+      line-height: 30rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 600;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.25s ease;
+    }
+
+    .q5-writebox {
+      position: absolute;
+      left: 50%;
+      top: 207rem;
+      transform: translateX(-50%);
+      width: 259rem;
+      height: 159rem;
+      padding: 14rem;
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 8rem;
+      background: #fafafa;
+      font-size: 14rem;
+      line-height: 22rem;
+      color: rgba(0, 0, 0, 0.85);
+      font-family: "PingFang SC", sans-serif;
+      resize: none;
+      outline: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 3;
+      transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    }
+
+    .q5-card.is-writing .q5-prompt { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-write { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-writebox {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s;
+    }
+
+    .q5-write {
+      position: absolute;
+      left: 50%;
+      top: 340rem;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 800;
+      color: #4de181;
+      white-space: nowrap;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.2s ease;
+    }
+    .q5-write .arr { font-size: 15rem; line-height: 1; }
+
+    .q5-skip {
+      position: absolute;
+      left: 50%;
+      top: 394rem;
+      transform: translateX(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 800;
+      color: #ccc;
+      white-space: nowrap;
+      font-family: "HYQiHei 80S", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: color 0.2s ease;
+    }
+    /* 已开始输入 / 点击提交：底部「提交」点亮为绿色 */
+    .q5-skip.has-input { color: #4de181; }
+    .q5-write:active, .q5-skip:active { opacity: 0.6; }
+
+    /* ===== 问卷结尾页（整组导出图，提交后渐显衔接，无翻卡） ===== */
+    .endpage {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: 342rem;
+      height: 456rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      will-change: transform, opacity;
+      transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+    }
+    .endpage.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+      animation: ep-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes ep-in {
+      0%   { transform: translateX(-50%) scale(0.9); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+    .endpage .ep-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12rem;
+      user-select: none;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 顶部（固定在页面最顶层） ===== -->
+  <img class="topfix" src="images/顶部.jpg" alt="用户最喜爱的朋友圈广告">
+
+  <div class="frame">
+    <!-- ===== 信息流 ===== -->
+    <img class="feed" src="images/信息流.jpg" alt="信息流">
+
+    <!-- ===== 问卷组件 ===== -->
+    <div class="quiz">
+    <!-- ===== 问卷封面 ===== -->
+    <section class="cover" id="cover" aria-label="问卷封面">
+      <img class="cover-img" src="images/cover-v3.png" alt="hi，我是阿心 · 关于取景框广告，想和你聊一聊">
+    </section>
+
+    <!-- ===== 问卷轮播 ===== -->
+    <div class="carousel" id="carousel" aria-label="问卷">
+      <article class="q-card" data-index="0">
+        <div class="q-inner"></div>
+        <div class="q-media"></div>
+        <h2 class="q-text"><span class="q-tag">Q1</span>你看到开头出现的心形放大效果了吗，感觉怎么样？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:250rem">看到了，形式很新颖！</li>
+          <li class="q-option" style="top:305rem">看到了，但不懂为什么会出现</li>
+          <li class="q-option" style="top:360rem">没看到这个效果</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="1">
+        <div class="q-inner"></div>
+        <div class="q-media"></div>
+        <h2 class="q-text"><span class="q-tag">Q2</span>这个心形画面会影响你看清广告内容吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:250rem">不会，这个形式很有趣</li>
+          <li class="q-option" style="top:305rem">有点，但不影响整体体验</li>
+          <li class="q-option" style="top:360rem">很影响我看内容</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="2">
+        <div class="q-inner"></div>
+        <div class="q-media"></div>
+        <h2 class="q-text"><span class="q-tag">Q3</span>来到这个画面后，你的具体行动是？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:250rem">很自然的点了商品</li>
+          <li class="q-option" style="top:305rem">看到文字后点了商品</li>
+          <li class="q-option" style="top:360rem">没点，不感兴趣</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="3">
+        <div class="q-inner"></div>
+        <div class="q-media"></div>
+        <h2 class="q-text"><span class="q-tag">Q4</span>你希望以后看到更多「特殊形状」的广告吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:250rem">希望！期待更多好创意</li>
+          <li class="q-option" style="top:305rem">还好，主要看内容和代言人</li>
+          <li class="q-option" style="top:360rem">更喜欢直接的画面呈现</li>
+        </ul>
+      </article>
+
+      <article class="q-card q5-card" data-index="4">
+        <div class="q-inner"></div>
+        <div class="q-media"></div>
+        <div class="q5-prompt">关于这个广告<br>你有什么单独想说的话吗？<br>欢迎写下你的想法<br>阿心很想听一听！</div>
+        <textarea class="q5-writebox" placeholder="写下你想对阿心说的话......"></textarea>
+        <button class="q5-write" type="button">去写写<span class="arr">→</span></button>
+        <button class="q5-skip" type="button">提交</button>
+      </article>
+
+      <div class="q-toast" id="qToast" role="status" aria-live="polite">请先选择一个选项</div>
+    </div>
+
+    <!-- ===== 问卷结尾页 ===== -->
+    <section class="endpage" id="endpage" aria-label="问卷结尾">
+      <img class="ep-img" src="images/end-v3.png" alt="感谢你的回答 · 期待更多创意投你所好">
+    </section>
+    </div><!-- /.quiz -->
+
+    <!-- ===== 底部信息 ===== -->
+    <img class="foot" src="images/底部信息.jpg" alt="底部信息">
+  </div>
+
+  <script>
+    (function () {
+      // 点击轻震反馈：仅安卓等支持 Vibration API 的设备生效，iOS 自动跳过且不报错
+      function haptic(ms) {
+        try { if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate(ms); } catch (e) {}
+      }
+
+      var cover = document.getElementById('cover');
+      var carousel = document.getElementById('carousel');
+      var endpage = document.getElementById('endpage');
+      var cards = Array.prototype.slice.call(carousel.querySelectorAll('.q-card'));
+
+      /* ---------- 选项选择（Q1~Q4 均为单选；Q5 为开放题无选项） ----------
+         点击选项即选中并自动进入下一题（短暂停顿以展示选中态）。 */
+      cards.forEach(function (card) {
+        var list = card.querySelector('.q-options');
+        if (!list) return;                       // Q5 开放题，跳过
+        var options = Array.prototype.slice.call(list.querySelectorAll('.q-option'));
+        options.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            if (animating) return;               // 动画进行中忽略，避免连跳
+            haptic(20);
+            options.forEach(function (o) { o.classList.remove('is-selected'); });
+            opt.classList.add('is-selected');
+            setTimeout(next, 300);               // 展示选中态后自动进入下一题
+          });
+        });
+      });
+
+      /* ---------- 未作答提示 toast ---------- */
+      var toast = document.getElementById('qToast');
+      var toastTimer = null;
+      function showToast(msg) {
+        toast.textContent = msg || '请先选择一个选项';
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+      }
+      function isAnswered(idx) {
+        var list = cards[idx].querySelector('.q-options');
+        if (!list) return true;                  // Q5 开放题，可直接提交
+        return !!list.querySelector('.q-option.is-selected');
+      }
+
+      /* =========================================================
+         单卡轮播（无重叠）：始终只展示当前一张卡片，居中显示。
+         「下一题」当前卡向左上抛飞离场，下一张由小到大上浮入场；
+         「上一题」反向。translate3d / opacity 平滑联动（GPU 加速）。
+         ========================================================= */
+      var N = cards.length;
+      var ANIM_MS = 800;
+      var EASE = 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease';
+
+      var ACTIVE   = { x: 0,   s: 1.00, z: 8,  op: 1 };
+      var EXIT     = { x: -36, s: 1.05, z: 10, op: 0, rot: -9, y: -78 };
+      var INCOMING = { x: 26,  s: 0.90, z: 4,  op: 0 };
+
+      var current = 0;
+      var animating = false;
+
+      function setStyle(el, d, useTransition) {
+        el.style.transition = useTransition ? EASE : 'none';
+        el.style.transform =
+          'translate3d(calc(-50% + ' + d.x + 'rem), ' + (d.y || 0) + 'rem, 0) rotate(' + (d.rot || 0) + 'deg) scale(' + d.s + ')';
+        el.style.opacity = String(d.op);
+        el.style.zIndex = String(d.z);
+      }
+
+      function stateForRel(rel) {
+        if (rel < 0) return EXIT;
+        if (rel === 0) return ACTIVE;
+        return INCOMING;
+      }
+
+      function applyAll(useTransition) {
+        cards.forEach(function (el, i) {
+          var rel = i - current;
+          setStyle(el, stateForRel(rel), useTransition);
+          el.style.pointerEvents = (rel === 0) ? 'auto' : 'none';
+        });
+      }
+
+      function next() {
+        if (animating || current >= N - 1) return;
+        if (!isAnswered(current)) { showToast(); return; }
+        animating = true;
+        current++;
+        applyAll(true);
+        setTimeout(function () { animating = false; }, ANIM_MS);
+      }
+
+      /* ---------- Q5 开放题：去写写 / 直接提交 ---------- */
+      var q5 = carousel.querySelector('.q5-card');
+      if (q5) {
+        var writeBtn = q5.querySelector('.q5-write');
+        var skipBtn = q5.querySelector('.q5-skip');
+        var writeBox = q5.querySelector('.q5-writebox');
+        if (writeBtn) writeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          haptic(20);
+          q5.classList.add('is-writing');
+          if (writeBox) setTimeout(function () { writeBox.focus(); }, 60);
+        });
+        // 用户开始输入后，「提交」点亮为绿色
+        if (writeBox) writeBox.addEventListener('input', function () {
+          if (skipBtn) skipBtn.classList.toggle('has-input', writeBox.value.trim().length > 0);
+        });
+        if (skipBtn) skipBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          haptic(30);
+          // 输入态（已点「去写写」）：必须填写内容才能提交，否则提示
+          if (q5.classList.contains('is-writing') &&
+              (!writeBox || writeBox.value.trim().length === 0)) {
+            showToast('请先写下你想说的话~');
+            if (writeBox) writeBox.focus();
+            return;
+          }
+          skipBtn.classList.add('has-input');     // 点击瞬间：底部「提交」点亮为绿色（点按反馈）
+          showToast('提交成功');
+          setTimeout(submit, 500);                // 展示 0.5s 后直接衔接结尾页
+        });
+      }
+
+      /* ---------- 阶段切换：封面 → 轮播 → 结尾页 ---------- */
+      function showCarousel() {
+        cover.classList.add('is-hidden');
+        setTimeout(function () {
+          carousel.classList.add('is-active');
+          current = 0;
+          applyAll(false);
+        }, 400);
+      }
+
+      /* 提交后：轮播淡出，问卷结尾页渐显衔接（无翻卡动效） */
+      function submit() {
+        carousel.classList.remove('is-active');
+        setTimeout(function () {
+          endpage.classList.add('is-active');
+        }, 280);
+      }
+
+      /* ---------- 封面：展示 2s 后自动进入 Q1；期间点击则立即进入 ---------- */
+      var coverAdvanced = false;
+      var coverTimer = null;
+      function leaveCover() {
+        if (coverAdvanced) return;
+        coverAdvanced = true;
+        if (coverTimer) { clearTimeout(coverTimer); coverTimer = null; }
+        if (coverObserver) coverObserver.disconnect();
+        showCarousel();
+      }
+      function startCoverTimer() {
+        if (coverTimer || coverAdvanced) return;
+        coverTimer = setTimeout(leaveCover, 2000);
+      }
+      cover.addEventListener('click', function () { haptic(25); leaveCover(); });
+
+      // 封面滚动进入视口后再开始 2s 倒计时（避免用户尚未看到封面就自动跳走）
+      var coverObserver = null;
+      if ('IntersectionObserver' in window) {
+        coverObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting && en.intersectionRatio >= 0.5) startCoverTimer();
+          });
+        }, { threshold: [0, 0.5, 1] });
+        coverObserver.observe(cover);
+      } else {
+        startCoverTimer();
+      }
+
+      applyAll(false);  // 预排布，避免首帧跳动
+    })();
+  </script>
+</body>
+</html>
