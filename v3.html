@@ -26,30 +26,16 @@
     }
 
     /* ===== 整体画框（自上而下顺序流式布局，模块间距为 0） =====
-       顺序：顶部(固定) → 信息流 → 问卷组件 → 底部信息。
-       画框宽度锁定 390rem（= 100vw），顶部预留固定条高度。 */
+       顺序：顶部 → 信息流 → 问卷组件 → 底部信息，整体随页面一起滚动。 */
     .frame {
       position: relative;
       width: 100%;           /* 用 100%（不含滚动条）确保内容居中于可视区中心 */
       margin: 0 auto;
-      padding-top: 504rem;   /* 为固定「顶部」预留高度，避免被遮挡 */
       background: #ffffff;
     }
 
-    /* 顶部：始终固定在页面最顶层（position:fixed + 最高层级） */
-    .topfix {
-      position: fixed;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      height: 504rem;      /* 1170×1512 → 390×504 */
-      display: block;
-      z-index: 9999;
-      user-select: none;
-    }
-
-    /* 信息流 / 底部信息：块级铺满宽度、等比高度，模块间距为 0 */
+    /* 顶部 / 信息流 / 底部信息：块级铺满宽度、等比高度，模块间距为 0，随流滚动 */
+    .top,
     .feed,
     .foot {
       display: block;
@@ -314,7 +300,6 @@
       font-family: "HYQiHei 60S", "PingFang SC", sans-serif;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.18s ease, background-color 0.18s ease;
     }
     .q-option.is-selected {
       border-color: rgba(0, 200, 104, 0.8);
@@ -479,10 +464,10 @@
   </style>
 </head>
 <body>
-  <!-- ===== 顶部（固定在页面最顶层） ===== -->
-  <img class="topfix" src="images/顶部.jpg" alt="用户最喜爱的朋友圈广告">
-
   <div class="frame">
+    <!-- ===== 顶部（随流滚动，不再固定） ===== -->
+    <img class="top" src="images/顶部.jpg" alt="用户最喜爱的朋友圈广告">
+
     <!-- ===== 信息流 ===== -->
     <img class="feed" src="images/信息流.jpg" alt="信息流">
 
