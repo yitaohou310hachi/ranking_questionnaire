@@ -501,6 +501,14 @@
       user-select: none;
       pointer-events: none;
     }
+    /* 结尾页出现时：吉祥物向上 32px 就位，缩放 0.8→0.9，并从向左 8° 旋回定格角度 */
+    .endpage.is-active .ep-axin {
+      animation: ep-axin-in 0.6s cubic-bezier(0.33, 0.03, 0.24, 0.96) both;
+    }
+    @keyframes ep-axin-in {
+      0%   { transform: translateX(-50%) translateY(32rem) rotate(-4.04deg) scale(0.8); }
+      100% { transform: translateX(-50%) translateY(0) rotate(3.96deg) scale(0.9); }
+    }
     .endpage .ep-title {
       position: absolute;
       left: 50%;
@@ -598,7 +606,7 @@
       <article class="q-card" data-index="3">
         <div class="q-shade" aria-hidden="true"></div>
         <div class="q-media"><img src="images/Q4.png" alt="特殊形状广告示意"></div>
-        <h2 class="q-text">你希望以后看到更多有特殊形状的广告吗？</h2>
+        <h2 class="q-text">你希望以后看到更多<br>有特殊形状的广告吗？</h2>
         <ul class="q-options" data-select="single">
           <li class="q-option" style="top:283rem">希望！期待更多好创意</li>
           <li class="q-option" style="top:345rem">还好，主要看内容和代言人</li>
@@ -688,13 +696,14 @@
          第 3 张及以后藏于第 2 张身后，故 Q1~Q3 后叠 2 张、Q4 后叠 1 张、
          Q5 身后为空）。作答后当前卡向左上抛飞离场，其余整体前移一层。 */
       var N = cards.length;
-      var ANIM_MS = 800;
-      var EASE = 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease';
+      var ANIM_MS = 400;
+      // opacity 用 ease-in 曲线：前段几乎保持不透明，最后才快速变淡，避免离场卡过早透出下一张
+      var EASE = 'transform 0.4s cubic-bezier(0.45, 0, 0.25, 1), opacity 0.3s cubic-bezier(0.69, 0.03, 1, 1)';
 
       // rot：向右倾斜角度；sh：叠加的 #000000 蒙层不透明度（越靠后越深）
       var ACTIVE = { x: 0,   s: 1.00, z: 8,  op: 1,   rot: 0, sh: 0    };  // 最前端（居中正前方）
-      var SECOND = { x: 10,  s: 0.90, z: 6,  op: 0.7, rot: 1, sh: 0.02 };  // 第二张（右移 10、缩 0.9、右倾 1°、蒙层 2%）
-      var THIRD  = { x: 20,  s: 0.80, z: 4,  op: 0.4, rot: 2, sh: 0.07 };  // 第三张（右移 20、缩 0.8、右倾 2°、蒙层 7%）
+      var SECOND = { x: 10,  s: 0.90, z: 6,  op: 1,   rot: 1, sh: 0.02 };  // 第二张（右移 10、缩 0.9、右倾 1°、蒙层 2%，不透明）
+      var THIRD  = { x: 20,  s: 0.80, z: 4,  op: 1,   rot: 2, sh: 0.07 };  // 第三张（右移 20、缩 0.8、右倾 2°、蒙层 7%，不透明）
       var HIDDEN = { x: 20,  s: 0.80, z: 3,  op: 0,   rot: 2, sh: 0.07 };  // 第三张之后：藏于其身后
       var EXIT   = { x: -40, s: 1.05, z: 10, op: 0, rot: -8, y: -72, sh: 0 };  // 已作答：向左上飞离
 
