@@ -495,20 +495,21 @@
     .endpage .ep-axin {
       position: absolute;
       left: 50%;
-      top: 187rem;
+      top: 177rem;
       width: 183.56rem;
       height: 183.56rem;
       transform: translateX(-50%) rotate(3.96deg);
       user-select: none;
       pointer-events: none;
     }
-    /* 结尾页出现时：吉祥物向上 32px 就位，缩放 0.8→0.9，并从向左 8° 旋回定格角度 */
+    /* 结尾页出现时：吉祥物向上 32px 就位（0.6s），再向下轻微掉落 3px 的惯性收尾（0.5s） */
     .endpage.is-active .ep-axin {
-      animation: ep-axin-in 0.6s cubic-bezier(0.33, 0.03, 0.24, 0.96) both;
+      animation: ep-axin-in 1.1s cubic-bezier(0.33, 0.03, 0.24, 0.96) both;
     }
     @keyframes ep-axin-in {
-      0%   { transform: translateX(-50%) translateY(32rem) rotate(-4.04deg) scale(0.8); }
-      100% { transform: translateX(-50%) translateY(0) rotate(3.96deg) scale(0.9); }
+      0%       { transform: translateX(-50%) translateY(32rem) rotate(-4.04deg) scale(0.8); animation-timing-function: cubic-bezier(0.33, 0.03, 0.24, 0.96); }
+      54.545%  { transform: translateX(-50%) translateY(0) rotate(3.96deg) scale(0.9); animation-timing-function: cubic-bezier(0.37, 0.02, 0.39, 0.97); }
+      100%     { transform: translateX(-50%) translateY(3rem) rotate(3.96deg) scale(0.9); }
     }
     .endpage .ep-title {
       position: absolute;
