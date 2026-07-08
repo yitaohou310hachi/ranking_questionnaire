@@ -260,7 +260,7 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, calc(-50% + 6rem));
+      transform: translate(-50%, calc(-50% + 3rem));
       max-width: 240rem;
       padding: 8rem 16rem;
       border-radius: 999rem;
@@ -272,7 +272,7 @@
       opacity: 0;
       pointer-events: none;
       z-index: 60;
-      transition: opacity 0.22s ease, transform 0.22s ease;
+      transition: opacity 0.22s cubic-bezier(0.37, 0.02, 0.39, 0.97), transform 0.22s cubic-bezier(0.37, 0.02, 0.39, 0.97);
     }
     .q-toast.show { opacity: 1; transform: translate(-50%, -50%); }
 
@@ -366,6 +366,7 @@
     }
     .q5-writebox::placeholder {
       font-family: "Weixin", "PingFang SC", sans-serif;
+      color: rgba(0, 0, 0, 0.15);
     }
 
     /* 实时字数提示（输入框右下角，仅输入态显示） */
@@ -573,7 +574,7 @@
       <article class="q-card" data-index="0">
         <div class="q-shade" aria-hidden="true"></div>
         <div class="q-media"><img src="images/Q1.gif" alt="图形扩展效果动画"></div>
-        <h2 class="q-text">你看到开头出现的图形扩展效果了吗，感觉怎么样？</h2>
+        <h2 class="q-text">你看到开头出现的图形扩展<br>效果了吗，感觉怎么样？</h2>
         <ul class="q-options" data-select="single">
           <li class="q-option" style="top:283rem">看到了，形式很新颖！</li>
           <li class="q-option" style="top:345rem">看到了，但不懂为什么会出现</li>
@@ -584,7 +585,7 @@
       <article class="q-card" data-index="1">
         <div class="q-shade" aria-hidden="true"></div>
         <div class="q-media"><img src="images/Q2.jpg" alt="异形画面示意"></div>
-        <h2 class="q-text">这个异形画面会影响你看清广告内容吗？</h2>
+        <h2 class="q-text">这个异形画面会影响<br>你看清广告内容吗？</h2>
         <ul class="q-options" data-select="single">
           <li class="q-option" style="top:283rem">不会，这个形式很有趣</li>
           <li class="q-option" style="top:345rem">有点，但不影响整体体验</li>
@@ -595,7 +596,7 @@
       <article class="q-card" data-index="2">
         <div class="q-shade" aria-hidden="true"></div>
         <div class="q-media"><img src="images/Q3.gif" alt="广告画面动画"></div>
-        <h2 class="q-text">当广告进入这个阶段时，你的具体行动是？</h2>
+        <h2 class="q-text">当广告进入这个阶段时，<br>你的具体行动是？</h2>
         <ul class="q-options" data-select="single">
           <li class="q-option" style="top:283rem">很自然的点了商品</li>
           <li class="q-option" style="top:345rem">看到文字后点了商品</li>
@@ -682,7 +683,7 @@
         toast.textContent = msg || '请先选择一个选项';
         toast.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1200);
       }
       function isAnswered(idx) {
         var list = cards[idx].querySelector('.q-options');
@@ -710,6 +711,19 @@
       var current = 0;
       var maxReached = 0;     // 已抵达（可查看）的最远卡片下标，用于限制只能拨回已答卡
       var animating = false;
+      var animTimer = null;
+
+      // 锁定切换动画态，动画结束后自动解锁；可重入（新动画会重置计时）
+      function lockAnim() {
+        animating = true;
+        if (animTimer) clearTimeout(animTimer);
+        animTimer = setTimeout(function () { animating = false; animTimer = null; }, ANIM_MS);
+      }
+      // 手指接管：立即打断进行中的切换动画，让后续拖动可继续跟手
+      function releaseAnim() {
+        animating = false;
+        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+      }
 
       function setStyle(el, d, useTransition) {
         el.style.transition = useTransition ? EASE : 'none';
@@ -743,11 +757,10 @@
       function next() {
         if (animating || current >= N - 1) return;
         if (!isAnswered(current)) { showToast(); return; }
-        animating = true;
         current++;
         if (current > maxReached) maxReached = current;   // 记录抵达的最远卡片
         applyAll(true);
-        setTimeout(function () { animating = false; }, ANIM_MS);
+        lockAnim();
       }
 
       /* ---------- Q5 开放题：去写写 / 直接提交 ---------- */
@@ -800,11 +813,19 @@
            若目标是未查看/未回答的卡，则无法查看，仅给出阻尼回弹反馈。
          松手超过阈值则切换，否则回弹到当前卡。 */
       function lerp(a, b, t) { return a + (b - a) * t; }
+      // 透明度只在「位移末段」变化：位移 0~0.7 保持满不透明，0.7~1 才淡出，
+      // 避免离场卡还没走远就透出下一张内容。t 为「到达态(b)」的进度：
+      // t≥OP_HOLD 直接保持 b 的不透明度，t<OP_HOLD 才在 a↔b 之间过渡。
+      var OP_HOLD = 0.3;
+      function opProgress(t) {
+        var p = t / OP_HOLD;
+        return p > 1 ? 1 : p;
+      }
       function lerpState(a, b, t) {
         return {
           x: lerp(a.x, b.x, t),
           s: lerp(a.s, b.s, t),
-          op: lerp(a.op, b.op, t),
+          op: lerp(a.op, b.op, opProgress(t)),
           rot: lerp(a.rot || 0, b.rot || 0, t),
           y: lerp(a.y || 0, b.y || 0, t),
           sh: lerp(a.sh || 0, b.sh || 0, t),
@@ -832,6 +853,7 @@
         cards.forEach(function (el, i) {
           var rel = i - current;
           var d = (rel === 0) ? lerpState(ACTIVE, target, t) : stateForRel(rel);
+          if (rel === 0) d.op = 1;   // 阻尼反馈全程保持当前卡不透明，避免透出下一张卡内容
           setStyle(el, d, false);
           el.style.pointerEvents = 'none';
         });
@@ -850,7 +872,8 @@
 
       carousel.addEventListener('pointerdown', function (e) {
         justDragged = false;
-        if (animating) return;
+        // 即使正处于切换动画中也记录按下：不再直接 return，
+        // 否则「按住不抬手」的手指永远拿不到 downId，后续拖动全程失灵（卡住）。
         if (q5 && q5.classList.contains('is-writing')) return;   // Q5 输入态不拦截手势
         startX = e.clientX; startY = e.clientY;
         dragging = false; decided = false; ignoreDrag = false; downId = e.pointerId;
@@ -865,10 +888,23 @@
           decided = true;
           if (Math.abs(dy) > Math.abs(dx)) { ignoreDrag = true; return; }  // 纵向：交给页面滚动
           dragging = true;
+          if (animating) releaseAnim();   // 手指接管：打断进行中的切换动画，继续跟手
         }
         if (!dragging) return;
         if (e.cancelable) e.preventDefault();
-        var dxRem = dx / remPx, t;
+
+        var dxRem = (e.clientX - startX) / remPx;
+
+        // 连续跟手：同一手势内拖过整张卡且该方向仍可通行时，就地推进一张并重定基准，
+        // 实现不抬手也能连续翻卡（向右回上一张至 0；向左前进至 maxReached）。
+        while (dxRem >= DRAG_MAP && current > 0) {
+          current--; startX += DRAG_MAP * remPx; dxRem -= DRAG_MAP; haptic(12);
+        }
+        while (-dxRem >= DRAG_MAP && current < maxReached) {
+          current++; startX -= DRAG_MAP * remPx; dxRem += DRAG_MAP; haptic(12);
+        }
+
+        var t;
         if (dxRem > 0) {
           if (current > 0) { t = dxRem / DRAG_MAP; if (t > 1) t = 1; renderFractional(current - t); }
           else { renderBlocked(dxRem); }                         // 首张，右向无处可回
@@ -887,17 +923,24 @@
         justDragged = true;
         var dxRem = dx / remPx;
         if (dxRem > DRAG_COMMIT && current > 0) {
-          animating = true; current--; haptic(15); applyAll(true);
-          setTimeout(function () { animating = false; }, ANIM_MS);
+          current--; haptic(15); applyAll(true); lockAnim();
         } else if (-dxRem > DRAG_COMMIT && current < maxReached) {
-          animating = true; current++; haptic(15); applyAll(true);
-          setTimeout(function () { animating = false; }, ANIM_MS);
+          current++; haptic(15); applyAll(true); lockAnim();
         } else {
-          applyAll(true);                                        // 未过阈值：回弹到当前卡
+          // 向左想看下一题、但当前题还没选选项：提示需先作答
+          if (-dxRem > DRAG_COMMIT && current < N - 1 && !isAnswered(current)) {
+            showToast('先选择选项才能看下一题哦');
+          }
+          applyAll(true);                                        // 未过阈值/被阻拦：回弹到当前卡
         }
       }
       carousel.addEventListener('pointerup', endDrag);
       carousel.addEventListener('pointercancel', endDrag);
+      // 横向拨卡锁定后，拦截 touchmove 阻止页面（信息流）纵向滚动；
+      // 纵向手势（未进入 dragging）不拦截，页面仍可正常上下滑动。
+      carousel.addEventListener('touchmove', function (e) {
+        if (dragging && e.cancelable) e.preventDefault();
+      }, { passive: false });
       // 拖拽刚结束的一次 click 抑制掉，避免误选选项
       carousel.addEventListener('click', function (e) {
         if (justDragged) { e.stopPropagation(); e.preventDefault(); justDragged = false; }
