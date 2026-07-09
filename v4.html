@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>用户调研问卷</title>
+  <style>
+    /* 1rem = 1 个 Figma 设计像素（设计稿基准宽度 390）。
+       在 390px 视口下 1rem = 1px，做到像素级还原，同时随视口宽度等比缩放。 */
+    html { font-size: calc(100vw / 390); }
+
+    /* 设计稿字体（微信字体） */
+    @font-face {
+      font-family: "Weixin Medium";
+      src: url("images/Weixin-test-1210-Medium.ttf") format("truetype");
+      font-weight: 400 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Weixin";
+      src: url("images/Weixin.otf") format("opentype");
+      font-weight: 400 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ===== 整体画框（自上而下顺序流式布局，模块间距为 0） =====
+       顺序：顶部 → 信息流 → 问卷组件 → 底部信息，整体随页面一起滚动。 */
+    .frame {
+      position: relative;
+      width: 100%;           /* 用 100%（不含滚动条）确保内容居中于可视区中心 */
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    /* 顶部 / 信息流 / 底部信息：块级铺满宽度、等比高度，模块间距为 0，随流滚动 */
+    .top,
+    .feed,
+    .foot {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* 问卷组件区：夹在「信息流」与「底部信息」之间，
+       封面 / 轮播 / 结束页三阶段在此叠放并切换。 */
+    .quiz {
+      position: relative;
+      width: 100%;
+      height: 532rem;
+    }
+
+    /* 卡片区统一基准：三阶段（封面 / 轮播 / 结束页）中心对齐于同一位置 */
+
+    /* ===== 问卷封面卡片（对话气泡 + 吉祥物，按设计稿分层还原） ===== */
+    .cover {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 317rem;
+      height: 492rem;
+      border-radius: 15rem;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(17, 230, 49, 0.07) 0%, rgba(43, 217, 126, 0) 100%), #eefff4;
+      cursor: pointer;
+      /* 封面作为牌组第 0 张，缩放/离场锚点与问题卡一致 */
+      transform-origin: 100% 50%;
+      will-change: transform, opacity;
+    }
+    /* 图层元素：吉祥物(封面阿心) / 装饰爱心(蓝、黄) / 对话气泡(qipao1~3) */
+    .cover-axin-wrap,
+    .cover-blueheart,
+    .cover-yellowheart,
+    .cover-qipao {
+      position: absolute;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+    }
+    .cover-qipao { height: auto; }
+    .cover-qipao1 { left: 105rem;  top: 27rem;   width: 158rem;   height: 64rem; z-index: 2; }
+    .cover-qipao2 { left: 51rem;   top: 99rem;   width: 212rem;   height: 64rem; z-index: 2; }
+    .cover-qipao3 { left: 45rem;   top: 171rem;  width: 218rem;   height: 64rem; z-index: 2; }
+    /* 气泡：向上 3rem（0.8s）+ 透明度 0→1（0.3s），触发时机对齐各行文案 */
+    .cover-qipao {
+      opacity: 0;
+      transform: translateY(3rem);
+      transition: transform 0.8s cubic-bezier(0.29, 0.02, 0.28, 0.96),
+                  opacity 0.3s cubic-bezier(0.29, 0.02, 0.28, 0.96);
+      will-change: transform, opacity;
+    }
+    .cover.is-in .cover-qipao1 { transform: translateY(0); opacity: 1; transition-delay: 0.3s; }
+    .cover.is-in .cover-qipao2 { transform: translateY(0); opacity: 1; transition-delay: 1.4s; }
+    .cover.is-in .cover-qipao3 { transform: translateY(0); opacity: 1; transition-delay: 2.5s; }
+    /* 封面阿心：设计稿可见区 237×245 @ (80,247)；PNG 711×735 为 @3x，页面 1:1 显示 237×245 */
+    .cover-axin-wrap {
+      left: 80rem;
+      top: 247rem;
+      width: 237rem;
+      height: 245rem;
+      overflow: hidden;
+      z-index: 1;
+      transform: translateY(8rem);
+      transition: transform 1.4s cubic-bezier(0.33, 0.03, 0.24, 0.96);
+    }
+    .cover-axin {
+      display: block;
+      width: 237rem;
+      height: 245rem;
+      max-width: none;
+    }
+    .cover-blueheart   { left: 28.34rem; top: 269.76rem; width: 44.043rem; z-index: 2; transform: translateY(6rem); transition: transform 1.4s cubic-bezier(0.33, 0.03, 0.24, 0.96); }
+    .cover-yellowheart { left: 263rem;   top: 79rem;     width: 30.25rem;  z-index: 2; transform: translateY(4rem); transition: transform 1.4s cubic-bezier(0.33, 0.03, 0.24, 0.96); }
+
+    /* 小元素依次上移就位（透明度不变，0s 起、间隔 0.1s：黄心 → 蓝心 → 吉祥物） */
+    .cover.is-in .cover-yellowheart { transform: translateY(0); transition-delay: 0s;   }
+    .cover.is-in .cover-blueheart   { transform: translateY(0); transition-delay: 0.1s; }
+    .cover.is-in .cover-axin-wrap     { transform: translateY(0); transition-delay: 0.2s; }
+
+    /* 标题（3 行文案，各自对齐所属气泡，逐字丝滑出现） */
+    .cover-title {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+    /* 逐字出现：每个字沿用原来的「上移 + 虚化 + 渐显」动效，按字错峰触发 */
+    .cover-title .char {
+      display: inline-block;
+      white-space: pre;
+      opacity: 0;
+      transform: translateY(3rem);
+      filter: blur(2rem);
+      transition: opacity 1s ease,
+                  transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+                  filter 0.9s ease;
+      will-change: opacity, transform, filter;
+    }
+    .cover-title.is-in .char {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+    .cover-title .t-line {
+      position: absolute;
+      font-size: 20rem;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.4914rem;
+      line-height: 1.2;
+      color: rgba(0, 0, 0, 0.9);
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      /* 整行在逐字动效之上，再叠一层「向上 3rem 位移到位」的动画 */
+      transform: translateY(3rem);
+      transition: transform 0.8s cubic-bezier(0.29, 0.02, 0.28, 0.96);
+      will-change: transform;
+    }
+    .cover-title .t1 { left: 125rem; top: 48rem;  }
+    .cover-title .t2 { left: 71rem;  top: 120rem; }
+    .cover-title .t3 { left: 65rem;  top: 192rem; }
+    .cover-title.is-in .t-line { transform: translateY(0); }
+    .cover-title.is-in .t1 { transition-delay: 0.3s; }
+    .cover-title.is-in .t2 { transition-delay: 1.4s; }
+    .cover-title.is-in .t3 { transition-delay: 2.5s; }
+    .cover-title .t3 .hl {
+      color: #2bd97e;
+    }
+    .cover.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* ===== 问卷轮播容器（与封面中心对齐） ===== */
+    .carousel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 492rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+      overflow: visible;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .carousel.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+    }
+    /* 封面介绍阶段：问题卡先隐藏（防首帧闪现，脚本随后接管） */
+    .carousel.intro .q-card { opacity: 0; }
+
+    /* ===== 单张问卷卡片（白底 + 细边 + 轻阴影） ===== */
+    .q-card {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 317rem;
+      height: 492rem;
+      border-radius: 15rem;
+      background: #ffffff;
+      border: 1rem solid #ececec;
+      box-shadow: 0 2rem 8rem rgba(0, 0, 0, 0.05);
+      /* 以右侧中点为缩放锚点：后叠卡缩小后右边缘不内收，
+         使 10rem / 20rem 的右移正好等于卡片右侧露出的宽度。 */
+      transform-origin: 100% 50%;
+      transform: translate3d(-50%, 0, 0) scale(1);
+      touch-action: pan-y;   /* 纵向滚动交给页面，横向手势由脚本处理 */
+      opacity: 1;
+      will-change: transform, opacity;
+      -webkit-transform: translate3d(-50%, 0, 0) scale(1);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    /* 轮播滑动时禁止选中卡片内文案（开放题输入框除外） */
+    .cover,
+    .q-card,
+    .q-text,
+    .q-option,
+    .q5-prompt,
+    .q5-write,
+    .q5-skip,
+    .cover-title {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* 后叠卡片的 #000000 蒙层（越靠后越深），随卡片一起缩放 / 倾斜 */
+    .q-shade {
+      position: absolute;
+      inset: 0;
+      border-radius: 15rem;
+      background: #000000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* 顶部素材区：253×236（Q7 为 253×200），居中于卡片，距顶 31。 */
+    .q-media {
+      position: absolute;
+      top: 31rem;
+      left: 32rem;
+      width: 253rem;
+      height: 236rem;
+      z-index: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .q-media--q7 { height: 200rem; }
+    .q-media--q7 video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    /* 空占位提示：放入素材后（有子元素）自动隐藏 */
+    .q-media:empty {
+      background: #ffffff;
+    }
+    .q-media:empty::before {
+      content: "素材区";
+      color: rgba(0, 0, 0, 0.22);
+      font-size: 13rem;
+      letter-spacing: 2rem;
+      font-family: "HYQiHei 60S", "PingFang SC", sans-serif;
+    }
+    .q-media img,
+    .q-media video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* 未选择即点「下一题」时的轻提示 */
+    .q-toast {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 3rem));
+      max-width: 240rem;
+      padding: 8rem 16rem;
+      border-radius: 999rem;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 12rem;
+      line-height: 1.4;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      transition: opacity 0.22s cubic-bezier(0.37, 0.02, 0.39, 0.97), transform 0.22s cubic-bezier(0.37, 0.02, 0.39, 0.97);
+    }
+    .q-toast.show { opacity: 1; transform: translate(-50%, -50%); }
+
+    /* 问题文案（居中题干） */
+    .q-text {
+      position: absolute;
+      left: 50%;
+      top: 279rem;
+      transform: translateX(-50%);
+      width: 253rem;
+      font-size: 17rem;
+      line-height: 26rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 500;
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      text-align: center;
+      z-index: 2;
+    }
+
+    /* 选项（居中文字胶囊：默认浅灰底，选中态浅绿底 + 绿字） */
+    .q-options {
+      position: absolute;
+      inset: 0;
+      list-style: none;
+      z-index: 2;
+    }
+    .q-option {
+      position: absolute;
+      left: 31rem;
+      width: 253rem;
+      min-height: 52rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16rem 8rem;
+      box-sizing: border-box;
+      border-radius: 8rem;
+      background: rgba(0, 0, 0, 0.02);
+      font-size: 15rem;
+      line-height: 1.3;
+      color: rgba(0, 0, 0, 0.55);
+      font-weight: 400;
+      font-family: "Weixin", "PingFang SC", sans-serif;
+      text-align: center;
+      cursor: pointer;
+    }
+    .q-option.is-selected {
+      background: rgba(0, 200, 104, 0.06);
+      color: #00c868;
+    }
+
+    /* ===== Q5/Q6：开放题卡片（去写写 / 直接提交） ===== */
+    .q5-prompt {
+      position: absolute;
+      left: 50%;
+      top: 218rem;
+      transform: translateX(-50%);
+      width: 209rem;
+      text-align: center;
+      font-size: 17rem;
+      line-height: 32rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 500;
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.25s ease;
+    }
+
+    .q5-writebox {
+      position: absolute;
+      left: 50%;
+      top: 222rem;
+      transform: translateX(-50%);
+      width: 259rem;
+      height: 182rem;
+      padding: 16rem 18rem 34rem;   /* 底部留白，避免正文与右下角字数提示重叠 */
+      box-sizing: border-box;
+      border: 1rem solid rgba(0, 0, 0, 0.1);
+      border-radius: 6rem;
+      background: rgba(0, 0, 0, 0.01);
+      font-size: 15rem;
+      line-height: 24rem;
+      color: rgba(0, 0, 0, 0.85);
+      font-family: "PingFang SC", sans-serif;
+      resize: none;
+      outline: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 3;
+      transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+      user-select: text;
+      -webkit-user-select: text;
+      -webkit-touch-callout: default;
+    }
+    .q5-writebox::placeholder {
+      font-family: "Weixin", "PingFang SC", sans-serif;
+      color: rgba(0, 0, 0, 0.15);
+    }
+
+    /* 实时字数提示（输入框右下角，仅输入态显示） */
+    .q5-count {
+      position: absolute;
+      left: 29rem;
+      top: 380rem;
+      width: 259rem;
+      padding-right: 16rem;
+      box-sizing: border-box;
+      text-align: right;
+      font-size: 11rem;
+      line-height: 14rem;
+      color: rgba(0, 0, 0, 0.3);
+      font-family: "PingFang SC", sans-serif;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    }
+    .q5-count .cur { color: rgba(0, 0, 0, 0.55); }
+    .q5-count.is-max .cur { color: #e5484d; }
+
+    .q5-card.is-writing .q5-prompt { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-write { opacity: 0; pointer-events: none; }
+    .q5-card.is-writing .q5-count {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s;
+    }
+    .q5-card.is-writing .q5-writebox {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s;
+    }
+
+    .q5-write {
+      position: absolute;
+      left: 50%;
+      top: 366rem;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 500;
+      color: #00c868;
+      white-space: nowrap;
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: opacity 0.2s ease;
+    }
+    .q5-write .arr { font-size: 15rem; line-height: 1; }
+
+    .q5-skip {
+      position: absolute;
+      left: 50%;
+      top: 436rem;
+      transform: translateX(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16rem;
+      line-height: 24rem;
+      letter-spacing: 0.25rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      z-index: 2;
+      transition: color 0.2s ease;
+    }
+    /* 已开始输入 / 点击提交：底部「提交」点亮为绿色 */
+    .q5-skip.has-input { color: #00c868; }
+    .q5-write:active { opacity: 0.6; }
+    /* 底部「直接提交 / 提交」点击不泛白，直接变绿 */
+    .q5-skip:active { color: #00c868; }
+
+    /* ===== Q1~Q7 轮播指示点（卡片下方 32rem，仅选择题阶段显示） ===== */
+    .q-dots {
+      position: absolute;
+      left: 50%;
+      top: 524rem;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12rem;
+      width: 128rem;
+      height: 8rem;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 30;
+      transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    }
+    .q-dots.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s;
+    }
+    .q-dot {
+      width: 8rem;
+      height: 8rem;
+      border-radius: 50%;
+      background: #f0f0f0;
+      flex-shrink: 0;
+      transition: background 0.25s ease;
+    }
+    .q-dot.is-active { background: #2bd97e; }
+
+    /* ===== 问卷结尾页（整组导出图，提交后渐显衔接，无翻卡） ===== */
+    .endpage {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: 317rem;
+      height: 492rem;
+      border-radius: 15rem;
+      overflow: hidden;
+      background: #ebfff2;
+      border: 1rem solid rgba(17, 160, 92, 0.06);
+      box-shadow: 0 2rem 16rem rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      will-change: transform, opacity;
+      transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+    }
+    .endpage.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.5s ease, visibility 0s;
+      animation: ep-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes ep-in {
+      0%   { transform: translateX(-50%) scale(0.9); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+    /* 结尾页图层：底部氛围图 / 吉祥物 / 标题 */
+    .endpage .ep-shadow {
+      position: absolute;
+      left: 130rem;
+      top: 442rem;
+      width: 56rem;
+      height: 15rem;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.05);
+      pointer-events: none;
+    }
+    .endpage .ep-axin {
+      position: absolute;
+      left: 78rem;
+      top: 262rem;
+      width: 157.557rem;
+      height: 157.557rem;
+      transform: rotate(3.96deg);
+      transform-origin: center center;
+      user-select: none;
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* 结尾页出现时：吉祥物向上 32px 就位（0.6s），再向下轻微掉落 3px 的惯性收尾（0.5s） */
+    .endpage.is-active .ep-axin {
+      animation: ep-axin-in 1.1s cubic-bezier(0.33, 0.03, 0.24, 0.96) both;
+    }
+    @keyframes ep-axin-in {
+      0%       { transform: translateY(32rem) rotate(-4.04deg) scale(0.8); animation-timing-function: cubic-bezier(0.33, 0.03, 0.24, 0.96); }
+      54.545%  { transform: translateY(0) rotate(3.96deg) scale(0.9); animation-timing-function: cubic-bezier(0.37, 0.02, 0.39, 0.97); }
+      100%     { transform: translateY(3rem) rotate(3.96deg) scale(0.9); }
+    }
+    .endpage .ep-title {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .endpage .ep-title p {
+      position: absolute;
+      margin: 0;
+      font-size: 22rem;
+      font-weight: 600;
+      font-family: "Weixin Medium", "PingFang SC", sans-serif;
+      letter-spacing: 0.4914rem;
+      line-height: normal;
+      white-space: nowrap;
+    }
+    .endpage .ep-title .e1 { left: 102rem; top: 65rem; color: rgba(0, 0, 0, 0.8); }
+    .endpage .ep-title .e2 { left: 68rem; top: 109rem; color: rgba(7, 193, 96, 0.8); }
+    .endpage .ep-title .e3 { left: 72.5rem; top: 153rem; color: rgba(0, 0, 0, 0.8); }
+    .endpage .ep-title .e4-row {
+      position: absolute;
+      left: 100.83rem;
+      top: 197rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 14rem;
+    }
+    .endpage .ep-title .e4 { position: static; color: rgba(0, 0, 0, 0.8); }
+    .endpage .ep-title .ep-wave {
+      width: 33.334rem;
+      height: 24rem;
+      flex-shrink: 0;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* 结尾页出现时的彩带/飞券迸发（Lottie，与 v2 一致） */
+    .endpage .ep-confetti {
+      position: absolute;
+      left: 50%;
+      top: -25rem;
+      width: 570rem;
+      height: 570rem;
+      transform: translateX(-50%);
+      z-index: 20;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .endpage .ep-confetti svg { overflow: visible !important; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <!-- ===== 顶部（随流滚动，不再固定） ===== -->
+    <img class="top" src="images/顶部.jpg" alt="用户最喜爱的朋友圈广告">
+
+    <!-- ===== 信息流 ===== -->
+    <img class="feed" src="images/信息流.jpg" alt="信息流">
+
+    <!-- ===== 问卷组件 ===== -->
+    <div class="quiz">
+    <!-- ===== 问卷轮播（封面作为第 0 张，可来回滑动） ===== -->
+    <div class="carousel is-active intro" id="carousel" aria-label="问卷">
+    <!-- ===== 问卷封面 ===== -->
+    <section class="cover" id="cover" aria-label="问卷封面">
+      <div class="cover-axin-wrap" aria-hidden="true">
+        <img class="cover-axin" src="images/封面阿心.png" alt="">
+      </div>
+      <img class="cover-yellowheart" src="images/封面黄色心.png" alt="">
+      <img class="cover-blueheart" src="images/封面蓝色心.png" alt="">
+      <img class="cover-qipao cover-qipao1" src="images/qipao1.png" alt="">
+      <img class="cover-qipao cover-qipao2" src="images/qipao2.png" alt="">
+      <img class="cover-qipao cover-qipao3" src="images/qipao3.png" alt="">
+      <div class="cover-title" id="coverTitle">
+        <p class="t-line t1">hi，我是阿心</p>
+        <p class="t-line t2">想采访下你对本期</p>
+        <p class="t-line t3"><span class="hl">新广告玩法</span> 的看法</p>
+      </div>
+    </section>
+
+      <article class="q-card" data-index="0">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><video src="images/Q1-v4.mp4" autoplay muted loop playsinline preload="auto"></video></div>
+        <h2 class="q-text">你觉得这个广告的<br>样式新颖吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">🤩 很有创意</li>
+          <li class="q-option" style="top:407rem">☺️ 还可以</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="1">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><video src="images/Q2.mp4" autoplay muted loop playsinline preload="auto"></video></div>
+        <h2 class="q-text">视频下面出现商品时，<br>你的行动是？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">🤩 想点击看看</li>
+          <li class="q-option" style="top:407rem">😯 专注视频暂时忽略</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="2">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><video src="images/Q3-v4.mp4" autoplay muted loop playsinline preload="auto"></video></div>
+        <h2 class="q-text">这个广告的玩法，<br>对你来说上手轻松吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">🤩 简单好理解</li>
+          <li class="q-option" style="top:407rem">😯 需要熟悉一下</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="3">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><img src="images/Q4.jpg" alt=""></div>
+        <h2 class="q-text" style="top:282rem;width:245rem">你介意在这个步骤上传照片吗？<br>（系统不会保存用户照片）</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">☺️ 不介意</li>
+          <li class="q-option" style="top:407rem">😐 介意</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="4">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><img src="images/Q5.jpg" alt=""></div>
+        <h2 class="q-text">你介意自己生成的形象中，<br>含有品牌元素吗？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">☺️ 不介意</li>
+          <li class="q-option" style="top:407rem">😐 介意</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="5">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media"><img src="images/Q6.jpg" alt=""></div>
+        <h2 class="q-text" style="width:232rem">你更期待在<br>朋友圈看到哪一种广告？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:345rem">🪄 互动生成类</li>
+          <li class="q-option" style="top:407rem">✨ 精美展示类</li>
+        </ul>
+      </article>
+
+      <article class="q-card" data-index="6">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media q-media--q7"><video src="images/Q7.mp4?v=202607092014" autoplay muted loop playsinline preload="auto"></video></div>
+        <h2 class="q-text" style="top:243rem;width:232rem">更可能吸引你参与的因素是？</h2>
+        <ul class="q-options" data-select="single">
+          <li class="q-option" style="top:283rem">🪄 品牌素材</li>
+          <li class="q-option" style="top:345rem">✨ IP 画风</li>
+          <li class="q-option" style="top:407rem">✨ 获得自己的表情包</li>
+        </ul>
+      </article>
+
+      <article class="q-card q5-card" data-index="7">
+        <div class="q-shade" aria-hidden="true"></div>
+        <div class="q-media" style="top:20rem;height:190rem"><img src="images/Q8.jpg?v=202607092009" alt=""></div>
+        <div class="q5-prompt">关于这个广告<br>你有什么单独想说的话吗？<br>欢迎写下你的想法<br>阿心很想听一听！</div>
+        <textarea class="q5-writebox" maxlength="200" placeholder="写下你想对阿心说的话......"></textarea>
+        <div class="q5-count" aria-hidden="true"><span class="cur">0</span>/200</div>
+        <button class="q5-write" type="button">去写写<span class="arr">→</span></button>
+        <button class="q5-skip" type="button">直接提交</button>
+      </article>
+
+      <div class="q-toast" id="qToast" role="status" aria-live="polite">请先选择一个选项</div>
+    </div>
+
+    <div class="q-dots" id="qDots" aria-hidden="true">
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+      <span class="q-dot"></span>
+    </div>
+
+    <!-- ===== 问卷结尾页 ===== -->
+    <section class="endpage" id="endpage" aria-label="问卷结尾">
+      <div class="ep-title">
+        <p class="e1">广告体验官</p>
+        <p class="e2">谢谢你的认真回答</p>
+        <p class="e3">对我们很有帮助 !</p>
+        <div class="e4-row">
+          <p class="e4">下次见</p>
+          <img class="ep-wave" src="images/ep-wave.svg" alt="">
+        </div>
+      </div>
+      <div class="ep-shadow" aria-hidden="true"></div>
+      <img class="ep-axin" src="images/问卷结尾阿心.png" alt="阿心">
+      <div class="ep-confetti" aria-hidden="true"></div>
+    </section>
+    </div><!-- /.quiz -->
+
+    <!-- ===== 底部信息 ===== -->
+    <img class="foot" src="images/底部信息.jpg" alt="底部信息">
+  </div>
+
+  <script src="js/lottie_svg.min.js"></script>
+  <script src="js/coupons.lottie.js"></script>
+  <script>
+    (function () {
+      // 点击轻震反馈：仅安卓等支持 Vibration API 的设备生效，iOS 自动跳过且不报错
+      function haptic(ms) {
+        try { if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate(ms); } catch (e) {}
+      }
+
+      var cover = document.getElementById('cover');
+      var carousel = document.getElementById('carousel');
+      var endpage = document.getElementById('endpage');
+      var qDots = document.getElementById('qDots');
+      var dotEls = qDots ? Array.prototype.slice.call(qDots.querySelectorAll('.q-dot')) : [];
+      var cards = Array.prototype.slice.call(carousel.querySelectorAll('.q-card'));
+      // 封面作为第 0 张，与问题卡片组成完整牌组（可来回滑动）
+      var slides = [cover].concat(cards);
+
+      /* ---------- 选项选择（Q1~Q7 均为单选；末张为开放题无选项） ----------
+         点击选项即选中并自动进入下一题（短暂停顿以展示选中态）。 */
+      cards.forEach(function (card) {
+        var list = card.querySelector('.q-options');
+        if (!list) return;                       // Q5 开放题，跳过
+        var options = Array.prototype.slice.call(list.querySelectorAll('.q-option'));
+        options.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            if (animating) return;               // 动画进行中忽略，避免连跳
+            haptic(20);
+            options.forEach(function (o) { o.classList.remove('is-selected'); });
+            opt.classList.add('is-selected');
+            setTimeout(next, 100);               // 展示选中态后自动进入下一题
+          });
+        });
+      });
+
+      /* ---------- 未作答提示 toast ---------- */
+      var toast = document.getElementById('qToast');
+      var toastTimer = null;
+      function showToast(msg) {
+        toast.textContent = msg || '请先选择一个选项';
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1200);
+      }
+
+      /* =========================================================
+         扑克牌式 Z 轴层叠：当前卡（Active）居中最前，后续卡片依次
+         缩小、右移、变淡地叠在其后；后面按剩余真实数量展示（最多 2 张，
+         第 3 张及以后藏于第 2 张身后，故 Q1~Q3 后叠 2 张、Q4 后叠 1 张、
+         Q5 身后为空）。作答后当前卡向左上抛飞离场，其余整体前移一层。 */
+      var N = cards.length;
+      var M = slides.length;   // 含封面的总张数
+      var intro = true;        // 封面介绍阶段：仅显示封面，暂不接管拖动
+      var ANIM_MS = 400;
+      // opacity 用 ease-in 曲线：前段几乎保持不透明，最后才快速变淡，避免离场卡过早透出下一张
+      var EASE = 'transform 0.4s cubic-bezier(0.45, 0, 0.25, 1), opacity 0.3s cubic-bezier(0.69, 0.03, 1, 1)';
+
+      // rot：向右倾斜角度；sh：叠加的 #000000 蒙层不透明度（越靠后越深）
+      var ACTIVE = { x: 0,   s: 1.00, z: 8,  op: 1,   rot: 0, sh: 0    };  // 最前端（居中正前方）
+      var SECOND = { x: 10,  s: 0.90, z: 6,  op: 1,   rot: 1, sh: 0.02 };  // 第二张（右移 10、缩 0.9、右倾 1°、蒙层 2%，不透明）
+      var THIRD  = { x: 20,  s: 0.80, z: 4,  op: 1,   rot: 2, sh: 0.07 };  // 第三张（右移 20、缩 0.8、右倾 2°、蒙层 7%，不透明）
+      var HIDDEN = { x: 20,  s: 0.80, z: 3,  op: 0,   rot: 2, sh: 0.07 };  // 第三张之后：藏于其身后
+      var EXIT   = { x: -40, s: 1.05, z: 10, op: 0, rot: -8, y: -72, sh: 0 };  // 已作答：向左上飞离
+
+      var current = 0;
+      var animating = false;
+      var animTimer = null;
+
+      // 锁定切换动画态，动画结束后自动解锁；可重入（新动画会重置计时）
+      function lockAnim() {
+        animating = true;
+        if (animTimer) clearTimeout(animTimer);
+        animTimer = setTimeout(function () { animating = false; animTimer = null; }, ANIM_MS);
+      }
+      // 手指接管：立即打断进行中的切换动画，让后续拖动可继续跟手
+      function releaseAnim() {
+        animating = false;
+        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+      }
+
+      function setStyle(el, d, useTransition) {
+        el.style.transition = useTransition ? EASE : 'none';
+        el.style.transform =
+          'translate3d(calc(-50% + ' + d.x + 'rem), ' + (d.y || 0) + 'rem, 0) rotate(' + (d.rot || 0) + 'deg) scale(' + d.s + ')';
+        el.style.opacity = String(d.op);
+        el.style.zIndex = String(d.z);
+        var shade = el.querySelector('.q-shade');
+        if (shade) {
+          shade.style.transition = useTransition ? 'opacity 0.65s ease' : 'none';
+          shade.style.opacity = String(d.sh || 0);
+        }
+      }
+
+      function stateForRel(rel) {
+        if (rel < 0) return EXIT;       // 已作答，飞离
+        if (rel === 0) return ACTIVE;   // 当前卡
+        if (rel === 1) return SECOND;   // 后叠第 1 张
+        if (rel === 2) return THIRD;    // 后叠第 2 张
+        return HIDDEN;                  // 更靠后的卡藏起来
+      }
+
+      function clone(o) { return { x: o.x, s: o.s, z: o.z, op: o.op, rot: o.rot || 0, y: o.y || 0, sh: o.sh || 0 }; }
+
+      /* Q1~Q7 轮播指示点：current 1~7 时显示，与当前选择题一一对应 */
+      function updateDots() {
+        if (!qDots) return;
+        var show = !intro && current >= 1 && current <= 7;
+        qDots.classList.toggle('is-visible', show);
+        if (!show) return;
+        dotEls.forEach(function (dot, i) {
+          dot.classList.toggle('is-active', i === current - 1);
+        });
+      }
+
+      /* 仅当前卡片内的视频循环播放，其余暂停以节省资源 */
+      function syncMediaPlayback() {
+        cards.forEach(function (card, i) {
+          var video = card.querySelector('.q-media video');
+          if (!video) return;
+          if (!intro && current === i + 1) {
+            var p = video.play();
+            if (p && p.catch) p.catch(function () {});
+          } else {
+            video.pause();
+          }
+        });
+      }
+
+      function applyAll(useTransition) {
+        var activeIdx = intro ? 0 : current;
+        slides.forEach(function (el, i) {
+          var st;
+          if (intro) {
+            // 介绍阶段：封面居前，其余按「进入 Q1 后」的位置预排但隐藏，待封面离场后原地渐显
+            if (i === 0) st = ACTIVE;
+            else { st = clone(stateForRel(i - 1)); st.op = 0; }
+          } else {
+            st = stateForRel(i - current);
+          }
+          setStyle(el, st, useTransition);
+          el.style.pointerEvents = (i === activeIdx) ? 'auto' : 'none';
+        });
+        updateDots();
+        syncMediaPlayback();
+      }
+
+      function next() {
+        if (animating || current >= M - 1) return;
+        current++;
+        applyAll(true);
+        lockAnim();
+      }
+
+      /* ---------- Q5 开放题：去写写 / 直接提交 ---------- */
+      var q5 = carousel.querySelector('.q5-card');
+      if (q5) {
+        var writeBtn = q5.querySelector('.q5-write');
+        var skipBtn = q5.querySelector('.q5-skip');
+        var writeBox = q5.querySelector('.q5-writebox');
+        var countBox = q5.querySelector('.q5-count');
+        var MAX_LEN = 200;
+        function updateCount() {
+          if (!writeBox || !countBox) return;
+          var n = writeBox.value.length;
+          if (n > MAX_LEN) { writeBox.value = writeBox.value.slice(0, MAX_LEN); n = MAX_LEN; }
+          countBox.innerHTML = '<span class="cur">' + n + '</span>/' + MAX_LEN;
+          countBox.classList.toggle('is-max', n >= MAX_LEN);
+        }
+        if (writeBtn) writeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          haptic(20);
+          q5.classList.add('is-writing');
+          if (skipBtn) skipBtn.textContent = '提交';   // 进入输入态：「直接提交」→「提交」
+          if (writeBox) setTimeout(function () { writeBox.focus(); }, 60);
+        });
+        // 用户开始输入后：「提交」点亮为绿色，并实时更新字数
+        if (writeBox) writeBox.addEventListener('input', function () {
+          updateCount();
+          if (skipBtn) skipBtn.classList.toggle('has-input', writeBox.value.trim().length > 0);
+        });
+        if (skipBtn) skipBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          haptic(30);
+          skipBtn.classList.add('has-input');     // 点击瞬间：底部「提交」点亮为绿色（点按反馈）
+          showToast('提交成功');
+          setTimeout(submit, 500);                // 展示 0.5s 后直接衔接结尾页
+        });
+      }
+
+      /* =========================================================
+         跟手滑动（拨卡）：
+         - 向右拖：拨回上一张，跟手联动；
+         - 向左拖：可前进至任意后续卡片（无需作答）；
+         松手超过阈值则切换，否则回弹到当前卡。 */
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      // 透明度只在「位移末段」变化：位移 0~0.7 保持满不透明，0.7~1 才淡出，
+      // 避免离场卡还没走远就透出下一张内容。t 为「到达态(b)」的进度：
+      // t≥OP_HOLD 直接保持 b 的不透明度，t<OP_HOLD 才在 a↔b 之间过渡。
+      var OP_HOLD = 0.3;
+      function opProgress(t) {
+        var p = t / OP_HOLD;
+        return p > 1 ? 1 : p;
+      }
+      function lerpState(a, b, t) {
+        return {
+          x: lerp(a.x, b.x, t),
+          s: lerp(a.s, b.s, t),
+          op: lerp(a.op, b.op, opProgress(t)),
+          rot: lerp(a.rot || 0, b.rot || 0, t),
+          y: lerp(a.y || 0, b.y || 0, t),
+          sh: lerp(a.sh || 0, b.sh || 0, t),
+          z: (t < 0.5 ? a.z : b.z)
+        };
+      }
+      // 以分数位置渲染整叠卡（pos 为浮点当前位；相邻层级状态间插值，实现跟手）
+      function renderFractional(pos) {
+        slides.forEach(function (el, i) {
+          var relF = i - pos;
+          var lo = Math.floor(relF);
+          var d = lerpState(stateForRel(lo), stateForRel(lo + 1), relF - lo);
+          setStyle(el, d, false);
+          el.style.pointerEvents = 'none';
+        });
+      }
+      // 不可通行方向的阻尼反馈：当前卡沿「正常切换路径」小幅前移后回弹，
+      // 而非直接横移——向左沿离场路径(ACTIVE→EXIT)，向右沿退居路径(ACTIVE→SECOND)。
+      // 其余卡保持原位，避免揭示未查看/未回答的卡。
+      function renderBlocked(dxRem) {
+        var target = (dxRem < 0) ? EXIT : SECOND;
+        var raw = Math.abs(dxRem) / DRAG_MAP;
+        var t = raw * 0.5;               // 半速：明显的阻尼手感
+        if (t > 0.3) t = 0.3;            // 最多只走 30% 路径，清楚表达“到不了”
+        slides.forEach(function (el, i) {
+          var rel = i - current;
+          var d = (rel === 0) ? lerpState(ACTIVE, target, t) : stateForRel(rel);
+          if (rel === 0) d.op = 1;   // 阻尼反馈全程保持当前卡不透明，避免透出下一张卡内容
+          setStyle(el, d, false);
+          el.style.pointerEvents = 'none';
+        });
+      }
+
+      var DRAG_MAP = 150;      // 手指位移(rem)映射到 t=1 的距离
+      var DRAG_COMMIT = 45;    // 触发切换的位移阈值(rem)
+      var remPx = 1;           // 每 rem 对应的像素数
+      var startX = 0, startY = 0, dragging = false, decided = false, ignoreDrag = false, downId = null, justDragged = false;
+
+      function refreshRemPx() {
+        // 直接取根字号（1rem 的像素值），避免用被缩放/旋转的卡片测量导致偏差
+        var fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        remPx = fs || 1;
+      }
+
+      function clearTextSelection() {
+        var sel = window.getSelection && window.getSelection();
+        if (sel && sel.removeAllRanges) sel.removeAllRanges();
+      }
+
+      /* 轮播区域内（除开放题输入框）禁止拖选文字 */
+      carousel.addEventListener('selectstart', function (e) {
+        if (e.target.closest('.q5-writebox')) return;
+        e.preventDefault();
+      });
+      carousel.addEventListener('dragstart', function (e) {
+        if (e.target.closest('.q5-writebox')) return;
+        e.preventDefault();
+      });
+
+      carousel.addEventListener('pointerdown', function (e) {
+        justDragged = false;
+        if (intro) return;                                       // 介绍阶段不接管拖动（点按由封面处理）
+        if (endpage.classList.contains('is-active')) return;     // 结尾页不处理手势
+        // 即使正处于切换动画中也记录按下：不再直接 return，
+        // 否则「按住不抬手」的手指永远拿不到 downId，后续拖动全程失灵（卡住）。
+        if (q5 && q5.classList.contains('is-writing')) return;   // Q5 输入态不拦截手势
+        startX = e.clientX; startY = e.clientY;
+        dragging = false; decided = false; ignoreDrag = false; downId = e.pointerId;
+        refreshRemPx();
+      });
+
+      carousel.addEventListener('pointermove', function (e) {
+        if (downId === null || e.pointerId !== downId || ignoreDrag) return;
+        var dx = e.clientX - startX, dy = e.clientY - startY;
+        if (!decided) {
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+          decided = true;
+          if (Math.abs(dy) > Math.abs(dx)) { ignoreDrag = true; return; }  // 纵向：交给页面滚动
+          dragging = true;
+          clearTextSelection();
+          if (animating) releaseAnim();   // 手指接管：打断进行中的切换动画，继续跟手
+        }
+        if (!dragging) return;
+        if (e.cancelable) e.preventDefault();
+
+        var dxRem = (e.clientX - startX) / remPx;
+
+        // 连续跟手：同一手势内拖过整张卡且该方向仍可通行时，就地推进一张并重定基准，
+        // 实现不抬手也能连续翻卡（向右回上一张至 0；向左前进至末张）。
+        while (dxRem >= DRAG_MAP && current > 0) {
+          current--; startX += DRAG_MAP * remPx; dxRem -= DRAG_MAP; haptic(12);
+        }
+        while (-dxRem >= DRAG_MAP && current < M - 1) {
+          current++; startX -= DRAG_MAP * remPx; dxRem += DRAG_MAP; haptic(12);
+        }
+
+        var t;
+        if (dxRem > 0) {
+          if (current > 0) { t = dxRem / DRAG_MAP; if (t > 1) t = 1; renderFractional(current - t); }
+          else { renderBlocked(dxRem); }                         // 首张，右向无处可回
+        } else {
+          if (current < M - 1) { t = (-dxRem) / DRAG_MAP; if (t > 1) t = 1; renderFractional(current + t); }
+          else { renderBlocked(dxRem); }                         // 末张，左向无处可进
+        }
+      });
+
+      function endDrag(e) {
+        if (downId === null) return;
+        var wasDragging = dragging;
+        var dx = (typeof e.clientX === 'number' ? e.clientX : startX) - startX;
+        downId = null; dragging = false; decided = false;
+        if (!wasDragging) return;
+        justDragged = true;
+        var dxRem = dx / remPx;
+        if (dxRem > DRAG_COMMIT && current > 0) {
+          current--; haptic(15); applyAll(true); lockAnim();
+        } else if (-dxRem > DRAG_COMMIT && current < M - 1) {
+          current++; haptic(15); applyAll(true); lockAnim();
+        } else {
+          applyAll(true);                                        // 未过阈值/被阻拦：回弹到当前卡
+        }
+      }
+      carousel.addEventListener('pointerup', endDrag);
+      carousel.addEventListener('pointercancel', endDrag);
+      // 横向拨卡锁定后，拦截 touchmove 阻止页面（信息流）纵向滚动；
+      // 纵向手势（未进入 dragging）不拦截，页面仍可正常上下滑动。
+      carousel.addEventListener('touchmove', function (e) {
+        if (dragging && e.cancelable) e.preventDefault();
+      }, { passive: false });
+      // 拖拽刚结束的一次 click 抑制掉，避免误选选项
+      carousel.addEventListener('click', function (e) {
+        if (justDragged) { e.stopPropagation(); e.preventDefault(); justDragged = false; }
+      }, true);
+
+      /* ---------- 阶段切换：封面(第0张) → 问题卡 → 结尾页 ---------- */
+      function enterDeck() {
+        if (!intro) return;
+        intro = false;
+        carousel.classList.remove('intro');
+        current = 1;             // 进入 Q1
+        applyAll(true);          // 封面向左飞离，问题卡原地渐显就位
+        lockAnim();
+      }
+
+      /* 结尾页出现瞬间：播放「彩带/飞券」迸发动效（Lottie，与 v2 一致） */
+      var couponAnim = null;
+      function burstConfetti() {
+        var layer = endpage.querySelector('.ep-confetti');
+        if (!layer || typeof lottie === 'undefined' || !window.COUPON_LOTTIE) return;
+        if (couponAnim) { couponAnim.destroy(); couponAnim = null; }
+        layer.innerHTML = '';
+        couponAnim = lottie.loadAnimation({
+          container: layer,
+          renderer: 'svg',
+          loop: false,
+          autoplay: true,
+          animationData: window.COUPON_LOTTIE,
+          rendererSettings: { preserveAspectRatio: 'xMidYMid meet' }
+        });
+        couponAnim.addEventListener('complete', function () {
+          if (couponAnim) { couponAnim.destroy(); couponAnim = null; }
+          layer.innerHTML = '';
+        });
+      }
+
+      /* 提交后：轮播淡出，问卷结尾页渐显衔接（无翻卡动效），出现时彩带迸发 */
+      function submit() {
+        if (qDots) qDots.classList.remove('is-visible');
+        cards.forEach(function (card) {
+          var video = card.querySelector('.q-media video');
+          if (video) video.pause();
+        });
+        carousel.classList.remove('is-active');
+        setTimeout(function () {
+          endpage.classList.add('is-active');
+          burstConfetti();                  // 与结尾页完全同时出现
+        }, 280);
+      }
+
+      /* ---------- 封面：标题依次出现(约 0.3s)后再保持 0.5s 自动进入 Q1；期间点击则立即进入 ---------- */
+      var coverTitle = document.getElementById('coverTitle');
+      var titlePlayed = false;
+
+      /* 把 3 行文案拆成单字 span，逐字错峰出现（整体延后 0.6s） */
+      var LINE_BASE = [0.3, 1.4, 2.5];  // 各行起始延迟
+      var CHAR_STEP = 0.06;             // 行内每个字之间的间隔
+      function buildTitleChars() {
+        if (!coverTitle) return;
+        var lines = coverTitle.querySelectorAll('.t-line');
+        Array.prototype.forEach.call(lines, function (line, li) {
+          var base = LINE_BASE[li] != null ? LINE_BASE[li] : (0.6 + li * 1.1);
+          var idx = 0;
+          var nodes = Array.prototype.slice.call(line.childNodes);
+          line.innerHTML = '';
+          nodes.forEach(function (node) {
+            var text = node.textContent || '';
+            var extraCls = (node.nodeType === 1 && node.className) ? (' ' + node.className) : '';
+            for (var i = 0; i < text.length; i++) {
+              var s = document.createElement('span');
+              s.className = 'char' + extraCls;
+              s.textContent = text[i];
+              s.style.transitionDelay = (base + idx * CHAR_STEP) + 's';
+              line.appendChild(s);
+              idx++;
+            }
+          });
+        });
+      }
+
+      function playTitle() {
+        if (titlePlayed) return;
+        titlePlayed = true;
+        if (cover) {
+          cover.classList.add('is-in', 'has-played');   // has-played：划回封面时不再重播
+        }
+        if (coverTitle) coverTitle.classList.add('is-in');
+      }
+      var coverAdvanced = false;
+      var coverTimer = null;
+      function leaveCover() {
+        if (coverAdvanced) return;
+        coverAdvanced = true;
+        if (coverTimer) { clearTimeout(coverTimer); coverTimer = null; }
+        if (coverObserver) coverObserver.disconnect();
+        enterDeck();
+      }
+      function startCoverTimer() {
+        if (coverTimer || coverAdvanced) return;
+        // 逐字出现，末行(约 4.04s)完成后再保持 0.5s → 约 4.55s 后进入 Q1
+        coverTimer = setTimeout(leaveCover, 4550);
+      }
+      cover.addEventListener('click', function () {
+        if (justDragged) return;                 // 拖拽结束后的 click 忽略
+        haptic(25);
+        if (intro) { leaveCover(); return; }      // 介绍阶段：点按立即进入牌组
+        if (current === 0) {                      // 已在牌组且停在封面：点按前进到 Q1
+          current = 1;
+          applyAll(true);
+          lockAnim();
+        }
+      });
+
+      buildTitleChars();  // 预先拆字，避免首帧闪烁
+
+      // 封面完整进入视口后：先播放标题逐字动效，再开始倒计时
+      var coverObserver = null;
+      if ('IntersectionObserver' in window) {
+        coverObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting && en.intersectionRatio >= 0.5) {
+              playTitle();
+              startCoverTimer();
+            }
+          });
+        }, { threshold: [0, 0.5, 1] });
+        coverObserver.observe(cover);
+      } else {
+        playTitle();
+        startCoverTimer();
+      }
+
+      applyAll(false);  // 预排布，避免首帧跳动
+    })();
+  </script>
+</body>
+</html>
